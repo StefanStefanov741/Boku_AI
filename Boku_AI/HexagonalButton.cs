@@ -59,7 +59,7 @@ public class HexagonalButton : Control
     {
         base.OnResize(e);
 
-        // Recreate the region to match the new size
+        //Recreate the region to match the hex size
         using (GraphicsPath path = new GraphicsPath())
         {
             Point[] hexagonPoints = new Point[6];
@@ -74,7 +74,7 @@ public class HexagonalButton : Control
 
             path.AddPolygon(hexagonPoints);
 
-            // Set the region to the hexagon shape
+            //Set the region to the hexagon shape
             this.Region = new Region(path);
         }
     }
