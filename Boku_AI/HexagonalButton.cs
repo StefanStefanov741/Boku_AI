@@ -6,15 +6,27 @@ using System.Windows.Forms;
 public class HexagonalButton : Control
 {
     public string tag;
+    private bool isWhiteMarble;
+    public bool marblePlaced;
 
-    public HexagonalButton(string t) {
+    public HexagonalButton(string t)
+    {
         this.tag = t;
         this.TabStop = false;
     }
 
-    public void clicked() {
-        MessageBox.Show("Clicked: "+tag);
+    public void PlaceMarble(bool isWhite)
+    {
+        if (marblePlaced) {
+            return;
+        }
+        this.isWhiteMarble = isWhite;
+        this.marblePlaced = true;
+
+        //Force redraw
+        Invalidate();
     }
+
     protected override void OnPaint(PaintEventArgs e)
     {
         base.OnPaint(e);
@@ -44,6 +56,31 @@ public class HexagonalButton : Control
                 g.DrawPolygon(pen, hexagonPoints);
             }
 
+            //Draw the marble if PlaceMarble has been called
+            if (marblePlaced)
+            {
+                if (isWhiteMarble)
+                {
+                    using (Brush marbleBrush = new SolidBrush(Color.White))
+                    {
+                        float diameter = Math.Min(Width, Height) * 0.6f;
+                        float x = (Width - diameter) / 2;
+                        float y = (Height - diameter) / 2;
+                        g.FillEllipse(marbleBrush, x, y, diameter, diameter);
+                    }
+                }
+                else
+                {
+                    using (Brush marbleBrush = new SolidBrush(Color.Black))
+                    {
+                        float diameter = Math.Min(Width, Height) * 0.6f;
+                        float x = (Width - diameter) / 2;
+                        float y = (Height - diameter) / 2;
+                        g.FillEllipse(marbleBrush, x, y, diameter, diameter);
+                    }
+                }
+            }
+
             //Add Tag as text
             string buttonText = tag;
             using (Font font = new Font("Arial", 14, FontStyle.Bold))
@@ -55,6 +92,7 @@ public class HexagonalButton : Control
             }
         }
     }
+
     protected override void OnResize(EventArgs e)
     {
         base.OnResize(e);

@@ -1,7 +1,10 @@
+using System.Drawing.Text;
+
 namespace Boku_AI
 {
     public partial class Form1 : Form
     {
+        GameState gameState = new GameState(null);
         public Form1()
         {
             InitializeComponent();
@@ -47,96 +50,96 @@ namespace Boku_AI
             //Create the board
 
             //Col1
-            HexFactory(hexSize, col1X, row6Y, "E10");
-            HexFactory(hexSize, col1X, row8Y, "D9");
-            HexFactory(hexSize, col1X, row10Y, "C8");
-            HexFactory(hexSize, col1X, row12Y, "B7");
-            HexFactory(hexSize, col1X, row14Y, "A6");
+            gameState.grid.Add(HexFactory(hexSize, col1X, row6Y, "E10"));
+            gameState.grid.Add(HexFactory(hexSize, col1X, row8Y, "D9"));
+            gameState.grid.Add(HexFactory(hexSize, col1X, row10Y, "C8"));
+            gameState.grid.Add(HexFactory(hexSize, col1X, row12Y, "B7"));
+            gameState.grid.Add(HexFactory(hexSize, col1X, row14Y, "A6"));
             //Col2
-            HexFactory(hexSize, col2X, row5Y, "F10");
-            HexFactory(hexSize, col2X, row7Y, "E9");
-            HexFactory(hexSize, col2X, row9Y, "D8");
-            HexFactory(hexSize, col2X, row11Y, "C7");
-            HexFactory(hexSize, col2X, row13Y, "B6");
-            HexFactory(hexSize, col2X, row15Y, "A5");
+            gameState.grid.Add(HexFactory(hexSize, col2X, row5Y, "F10"));
+            gameState.grid.Add(HexFactory(hexSize, col2X, row7Y, "E9"));
+            gameState.grid.Add(HexFactory(hexSize, col2X, row9Y, "D8"));
+            gameState.grid.Add(HexFactory(hexSize, col2X, row11Y, "C7"));
+            gameState.grid.Add(HexFactory(hexSize, col2X, row13Y, "B6"));
+            gameState.grid.Add(HexFactory(hexSize, col2X, row15Y, "A5"));
             //Col3
-            HexFactory(hexSize, col3X, row4Y, "G10");
-            HexFactory(hexSize, col3X, row6Y, "F9");
-            HexFactory(hexSize, col3X, row8Y, "E8");
-            HexFactory(hexSize, col3X, row10Y, "D7");
-            HexFactory(hexSize, col3X, row12Y, "C6");
-            HexFactory(hexSize, col3X, row14Y, "B5");
-            HexFactory(hexSize, col3X, row16Y, "A4");
+            gameState.grid.Add(HexFactory(hexSize, col3X, row4Y, "G10"));
+            gameState.grid.Add(HexFactory(hexSize, col3X, row6Y, "F9"));
+            gameState.grid.Add(HexFactory(hexSize, col3X, row8Y, "E8"));
+            gameState.grid.Add(HexFactory(hexSize, col3X, row10Y, "D7"));
+            gameState.grid.Add(HexFactory(hexSize, col3X, row12Y, "C6"));
+            gameState.grid.Add(HexFactory(hexSize, col3X, row14Y, "B5"));
+            gameState.grid.Add(HexFactory(hexSize, col3X, row16Y, "A4"));
             //Col 4
-            HexFactory(hexSize, col4X, row3Y, "H10");
-            HexFactory(hexSize, col4X, row5Y, "G9");
-            HexFactory(hexSize, col4X, row7Y, "F8");
-            HexFactory(hexSize, col4X, row9Y, "E7");
-            HexFactory(hexSize, col4X, row11Y, "D6");
-            HexFactory(hexSize, col4X, row13Y, "C5");
-            HexFactory(hexSize, col4X, row15Y, "B4");
-            HexFactory(hexSize, col4X, row17Y, "A3");
+            gameState.grid.Add(HexFactory(hexSize, col4X, row3Y, "H10"));
+            gameState.grid.Add(HexFactory(hexSize, col4X, row5Y, "G9"));    
+            gameState.grid.Add(HexFactory(hexSize, col4X, row7Y, "F8"));
+            gameState.grid.Add(HexFactory(hexSize, col4X, row9Y, "E7"));
+            gameState.grid.Add(HexFactory(hexSize, col4X, row11Y, "D6"));
+            gameState.grid.Add(HexFactory(hexSize, col4X, row13Y, "C5"));
+            gameState.grid.Add(HexFactory(hexSize, col4X, row15Y, "B4"));
+            gameState.grid.Add(HexFactory(hexSize, col4X, row17Y, "A3"));
             //Col 5
-            HexFactory(hexSize, col5X, row2Y, "I10");
-            HexFactory(hexSize, col5X, row4Y, "H9");
-            HexFactory(hexSize, col5X, row6Y, "G8");
-            HexFactory(hexSize, col5X, row8Y, "F7");
-            HexFactory(hexSize, col5X, row10Y, "E6");
-            HexFactory(hexSize, col5X, row12Y, "D5");
-            HexFactory(hexSize, col5X, row14Y, "C4");
-            HexFactory(hexSize, col5X, row16Y, "B3");
-            HexFactory(hexSize, col5X, row18Y, "A2");
+            gameState.grid.Add(HexFactory(hexSize, col5X, row2Y, "I10"));
+            gameState.grid.Add(HexFactory(hexSize, col5X, row4Y, "H9"));
+            gameState.grid.Add(HexFactory(hexSize, col5X, row6Y, "G8"));
+            gameState.grid.Add(HexFactory(hexSize, col5X, row8Y, "F7"));
+            gameState.grid.Add(HexFactory(hexSize, col5X, row10Y, "E6"));
+            gameState.grid.Add(HexFactory(hexSize, col5X, row12Y, "D5"));
+            gameState.grid.Add(HexFactory(hexSize, col5X, row14Y, "C4"));
+            gameState.grid.Add(HexFactory(hexSize, col5X, row16Y, "B3"));
+            gameState.grid.Add(HexFactory(hexSize, col5X, row18Y, "A2"));
             //Col 6 (Middle)
-            HexFactory(hexSize, col6X, row1Y, "J10");
-            HexFactory(hexSize, col6X, row3Y, "I9");
-            HexFactory(hexSize, col6X, row5Y, "H8");
-            HexFactory(hexSize, col6X, row7Y, "G7");
-            HexFactory(hexSize, col6X, row9Y, "F6");
-            HexFactory(hexSize, col6X, row11Y, "E5");
-            HexFactory(hexSize, col6X, row13Y, "D4");
-            HexFactory(hexSize, col6X, row15Y, "C3");
-            HexFactory(hexSize, col6X, row17Y, "B2");
-            HexFactory(hexSize, col6X, row19Y, "A1");
+            gameState.grid.Add(HexFactory(hexSize, col6X, row1Y, "J10"));
+            gameState.grid.Add(HexFactory(hexSize, col6X, row3Y, "I9"));
+            gameState.grid.Add(HexFactory(hexSize, col6X, row5Y, "H8"));
+            gameState.grid.Add(HexFactory(hexSize, col6X, row7Y, "G7"));
+            gameState.grid.Add(HexFactory(hexSize, col6X, row9Y, "F6"));
+            gameState.grid.Add(HexFactory(hexSize, col6X, row11Y, "E5"));
+            gameState.grid.Add(HexFactory(hexSize, col6X, row13Y, "D4"));
+            gameState.grid.Add(HexFactory(hexSize, col6X, row15Y, "C3"));
+            gameState.grid.Add(HexFactory(hexSize, col6X, row17Y, "B2"));
+            gameState.grid.Add(HexFactory(hexSize, col6X, row19Y, "A1"));
             //Col 7
-            HexFactory(hexSize, col7X, row2Y, "J9");
-            HexFactory(hexSize, col7X, row4Y, "I8");
-            HexFactory(hexSize, col7X, row6Y, "H7");
-            HexFactory(hexSize, col7X, row8Y, "G6");
-            HexFactory(hexSize, col7X, row10Y, "F5");
-            HexFactory(hexSize, col7X, row12Y, "E4");
-            HexFactory(hexSize, col7X, row14Y, "D3");
-            HexFactory(hexSize, col7X, row16Y, "C2");
-            HexFactory(hexSize, col7X, row18Y, "B1");
+            gameState.grid.Add(HexFactory(hexSize, col7X, row2Y, "J9"));
+            gameState.grid.Add(HexFactory(hexSize, col7X, row4Y, "I8"));
+            gameState.grid.Add(HexFactory(hexSize, col7X, row6Y, "H7"));
+            gameState.grid.Add(HexFactory(hexSize, col7X, row8Y, "G6"));
+            gameState.grid.Add(HexFactory(hexSize, col7X, row10Y, "F5"));
+            gameState.grid.Add(HexFactory(hexSize, col7X, row12Y, "E4"));
+            gameState.grid.Add(HexFactory(hexSize, col7X, row14Y, "D3"));
+            gameState.grid.Add(HexFactory(hexSize, col7X, row16Y, "C2"));
+            gameState.grid.Add(HexFactory(hexSize, col7X, row18Y, "B1"));
             //Col 8
-            HexFactory(hexSize, col8X, row3Y, "J8");
-            HexFactory(hexSize, col8X, row5Y, "I7");
-            HexFactory(hexSize, col8X, row7Y, "H6");
-            HexFactory(hexSize, col8X, row9Y, "G5");
-            HexFactory(hexSize, col8X, row11Y, "F4");
-            HexFactory(hexSize, col8X, row13Y, "E3");
-            HexFactory(hexSize, col8X, row15Y, "D2");
-            HexFactory(hexSize, col8X, row17Y, "C1");
+            gameState.grid.Add(HexFactory(hexSize, col8X, row3Y, "J8"));
+            gameState.grid.Add(HexFactory(hexSize, col8X, row5Y, "I7"));
+            gameState.grid.Add(HexFactory(hexSize, col8X, row7Y, "H6"));
+            gameState.grid.Add(HexFactory(hexSize, col8X, row9Y, "G5"));
+            gameState.grid.Add(HexFactory(hexSize, col8X, row11Y, "F4"));
+            gameState.grid.Add(HexFactory(hexSize, col8X, row13Y, "E3"));
+            gameState.grid.Add(HexFactory(hexSize, col8X, row15Y, "D2"));
+            gameState.grid.Add(HexFactory(hexSize, col8X, row17Y, "C1"));
             //Col 9
-            HexFactory(hexSize, col9X, row4Y, "J7");
-            HexFactory(hexSize, col9X, row6Y, "I6");
-            HexFactory(hexSize, col9X, row8Y, "H5");
-            HexFactory(hexSize, col9X, row10Y, "G4");
-            HexFactory(hexSize, col9X, row12Y, "F3");
-            HexFactory(hexSize, col9X, row14Y, "E2");
-            HexFactory(hexSize, col9X, row16Y, "D1");
+            gameState.grid.Add(HexFactory(hexSize, col9X, row4Y, "J7"));
+            gameState.grid.Add(HexFactory(hexSize, col9X, row6Y, "I6"));
+            gameState.grid.Add(HexFactory(hexSize, col9X, row8Y, "H5"));
+            gameState.grid.Add(HexFactory(hexSize, col9X, row10Y, "G4"));
+            gameState.grid.Add(HexFactory(hexSize, col9X, row12Y, "F3"));
+            gameState.grid.Add(HexFactory(hexSize, col9X, row14Y, "E2"));
+            gameState.grid.Add(HexFactory(hexSize, col9X, row16Y, "D1"));
             //Col 10
-            HexFactory(hexSize, col10X, row5Y, "J6");
-            HexFactory(hexSize, col10X, row7Y, "I5");
-            HexFactory(hexSize, col10X, row9Y, "H4");
-            HexFactory(hexSize, col10X, row11Y, "G3");
-            HexFactory(hexSize, col10X, row13Y, "F2");
-            HexFactory(hexSize, col10X, row15Y, "E1");
+            gameState.grid.Add(HexFactory(hexSize, col10X, row5Y, "J6"));
+            gameState.grid.Add(HexFactory(hexSize, col10X, row7Y, "I5"));
+            gameState.grid.Add(HexFactory(hexSize, col10X, row9Y, "H4"));
+            gameState.grid.Add(HexFactory(hexSize, col10X, row11Y, "G3"));
+            gameState.grid.Add(HexFactory(hexSize, col10X, row13Y, "F2"));
+            gameState.grid.Add(HexFactory(hexSize, col10X, row15Y, "E1"));
             //Col 11
-            HexFactory(hexSize, col11X, row6Y, "J5");
-            HexFactory(hexSize, col11X, row8Y, "I4");
-            HexFactory(hexSize, col11X, row10Y, "H3");
-            HexFactory(hexSize, col11X, row12Y, "G2");
-            HexFactory(hexSize, col11X, row14Y, "F1");
+            gameState.grid.Add(HexFactory(hexSize, col11X, row6Y, "J5"));
+            gameState.grid.Add(HexFactory(hexSize, col11X, row8Y, "I4"));
+            gameState.grid.Add(HexFactory(hexSize, col11X, row10Y, "H3"));
+            gameState.grid.Add(HexFactory(hexSize, col11X, row12Y, "G2"));
+            gameState.grid.Add(HexFactory(hexSize, col11X, row14Y, "F1"));
         }
 
         HexagonalButton HexFactory(int size,float posX, float posY, string tag) {
@@ -156,11 +159,19 @@ namespace Boku_AI
 
         private void Hex_Click(object sender, EventArgs e)
         {
-            //Access the Tag property of the sender to determine which button was clicked
-            string buttonIdentifier = (sender as HexagonalButton).Tag.ToString();
+            //Check the tag property of the sender to determine which button was clicked
+            string buttonTag = (sender as HexagonalButton).Tag.ToString();
+            foreach (HexagonalButton hex in gameState.grid) {
+                if (hex.tag == buttonTag && !hex.marblePlaced) {
+                    hex.PlaceMarble(gameState.placeMarble());
+                    break;
+                }
+            }
+        }
 
-            //Use the button identifier for further action
-            MessageBox.Show($"Hexagone '{buttonIdentifier}' clicked!");
+        private void undo(object sender, EventArgs e)
+        {
+            gameState.UndoState();
         }
     }
 }
