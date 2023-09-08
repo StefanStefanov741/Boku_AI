@@ -5,6 +5,7 @@ namespace Boku_AI
     public partial class Form1 : Form
     {
         GameState gameState = new GameState(null);
+        int gameEnded = -1;
         public Form1()
         {
             InitializeComponent();
@@ -159,19 +160,61 @@ namespace Boku_AI
 
         private void Hex_Click(object sender, EventArgs e)
         {
+            if (gameEnded > -1) {
+                return;
+            }
             //Check the tag property of the sender to determine which button was clicked
-            string buttonTag = (sender as HexagonalButton).Tag.ToString();
+            string buttonTag = (sender as HexagonalButton).tag.ToString();
+            bool isWhiteMarble = false;
+            bool successfulPlace = false;
             foreach (HexagonalButton hex in gameState.grid) {
                 if (hex.tag == buttonTag && !hex.marblePlaced) {
-                    hex.PlaceMarble(gameState.placeMarble());
+                    isWhiteMarble = gameState.placeMarble(buttonTag);
+                    hex.PlaceMarble(isWhiteMarble);
+                    successfulPlace = true;
                     break;
+                }
+            }
+            if (successfulPlace) {
+                gameEnded = gameState.CheckGameEnded(buttonTag, isWhiteMarble);
+                switch (gameEnded)
+                {
+                    case 0:
+                        //Its a draw
+                        MessageBox.Show("It's a Draw!");
+                        break;
+                    case 1:
+                        //White won
+                        MessageBox.Show("White Wins!");
+                        break;
+                    case 2:
+                        //Black won
+                        MessageBox.Show("Black Wins!");
+                        break;
+                    default:
+                        //Game hasn't eneded
+                        break;
                 }
             }
         }
 
         private void undo(object sender, EventArgs e)
         {
+            if(gameEnded > -1) {
+                return;
+            }
             gameState.UndoState();
+            RedrawBoard();
         }
+
+        private void RedrawBoard() {
+            this.Controls.Clear();
+            InitSidePanel();
+            foreach (HexagonalButton hex in gameState.grid) {
+                hex.Click += Hex_Click;    
+                this.Controls.Add(hex);
+            }
+        }
+
     }
 }

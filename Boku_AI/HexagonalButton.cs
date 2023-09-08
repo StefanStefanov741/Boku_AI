@@ -9,10 +9,21 @@ public class HexagonalButton : Control
     private bool isWhiteMarble;
     public bool marblePlaced;
 
-    public HexagonalButton(string t)
+    public HexagonalButton(string t, bool mrblPlaced = false, bool isMrblWhite = false)
     {
         this.tag = t;
-        this.TabStop = false;
+        this.marblePlaced = mrblPlaced;
+        this.isWhiteMarble = isMrblWhite;
+    }
+
+    public HexagonalButton(HexagonalButton btn)
+    {
+        this.tag = btn.tag;
+        this.marblePlaced = btn.marblePlaced;
+        this.isWhiteMarble = btn.isWhiteMarble;
+        this.Height = btn.Height;
+        this.Width = btn.Width;
+        this.Location = btn.Location;
     }
 
     public void PlaceMarble(bool isWhite)
