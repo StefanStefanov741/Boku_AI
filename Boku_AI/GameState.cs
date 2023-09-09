@@ -55,8 +55,9 @@ namespace Boku_AI
             return !isPlayer1Turn;
         }
 
-        public void UndoState() {
-            if (boardHistory.Count > 0) {
+        public bool UndoState() {
+            if (boardHistory.Count > 0)
+            {
                 grid = boardHistory.Last();
                 whiteMarbles = whiteMarblesHistory.Last();
                 blackMarbles = blackMarblesHistory.Last();
@@ -64,6 +65,10 @@ namespace Boku_AI
                 whiteMarblesHistory.RemoveAt(whiteMarblesHistory.Count - 1);
                 blackMarblesHistory.RemoveAt(blackMarblesHistory.Count - 1);
                 isPlayer1Turn = !isPlayer1Turn;
+                return true;
+            }
+            else {
+                return false;
             }
         }
 

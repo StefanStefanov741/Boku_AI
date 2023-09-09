@@ -6,6 +6,9 @@ namespace Boku_AI
     {
         GameState gameState = new GameState(null);
         int gameEnded = -1;
+        bool player1AI = false;
+        bool player2AI = false;
+
         public Form1()
         {
             InitializeComponent();
@@ -203,17 +206,54 @@ namespace Boku_AI
             if(gameEnded > -1) {
                 return;
             }
-            gameState.UndoState();
-            RedrawBoard();
+            if (gameState.UndoState()) {
+                RedrawBoard();
+            }
         }
 
         private void RedrawBoard() {
             this.Controls.Clear();
-            InitSidePanel();
+            InitSidePanel(player1AI,player2AI);
             foreach (HexagonalButton hex in gameState.grid) {
                 hex.Click += Hex_Click;    
                 this.Controls.Add(hex);
             }
+        }
+
+        private void changePlayer1(object sender, EventArgs e) {
+            if (comboBox1.SelectedItem.ToString().Equals("AI"))
+            {
+                //Make AI take over
+                player1AI = true;
+            }
+            else {
+                //Let the player play
+                player1AI = false;
+            }
+        }
+
+        private void changePlayer2(object sender, EventArgs e)
+        {
+            if (comboBox2.SelectedItem.ToString().Equals("AI"))
+            {
+                //Make AI take over
+                player2AI = true;
+            }
+            else
+            {
+                //Let the player play
+                player2AI = false;
+            }
+        }
+
+        private void restartGame(object sender, EventArgs e)
+        {
+            gameEnded = -1;
+            gameState = new GameState(null);
+            player1AI = false;
+            player2AI = false;
+            BuildGrid();
+            RedrawBoard();
         }
 
     }
