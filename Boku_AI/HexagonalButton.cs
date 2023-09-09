@@ -8,6 +8,7 @@ public class HexagonalButton : Control
     public string tag;
     private bool isWhiteMarble;
     public bool marblePlaced;
+    public bool canBeTaken = false;
 
     public HexagonalButton(string t, bool mrblPlaced = false, bool isMrblWhite = false)
     {
@@ -24,6 +25,7 @@ public class HexagonalButton : Control
         this.Height = btn.Height;
         this.Width = btn.Width;
         this.Location = btn.Location;
+        this.canBeTaken= btn.canBeTaken;
     }
 
     public void PlaceMarble(bool isWhite)
@@ -36,6 +38,12 @@ public class HexagonalButton : Control
 
         //Force redraw
         Invalidate();
+    }
+
+    public void ClearMarble() {
+        marblePlaced = false;
+        marblePlaced = false;
+        canBeTaken = false;
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -70,9 +78,9 @@ public class HexagonalButton : Control
             //Draw the marble if PlaceMarble has been called
             if (marblePlaced)
             {
-                if (isWhiteMarble)
+                if (canBeTaken)
                 {
-                    using (Brush marbleBrush = new SolidBrush(Color.White))
+                    using (Brush marbleBrush = new SolidBrush(Color.YellowGreen))
                     {
                         float diameter = Math.Min(Width, Height) * 0.6f;
                         float x = (Width - diameter) / 2;
@@ -80,16 +88,29 @@ public class HexagonalButton : Control
                         g.FillEllipse(marbleBrush, x, y, diameter, diameter);
                     }
                 }
-                else
-                {
-                    using (Brush marbleBrush = new SolidBrush(Color.Black))
+                else {
+                    if (isWhiteMarble)
                     {
-                        float diameter = Math.Min(Width, Height) * 0.6f;
-                        float x = (Width - diameter) / 2;
-                        float y = (Height - diameter) / 2;
-                        g.FillEllipse(marbleBrush, x, y, diameter, diameter);
+                        using (Brush marbleBrush = new SolidBrush(Color.White))
+                        {
+                            float diameter = Math.Min(Width, Height) * 0.6f;
+                            float x = (Width - diameter) / 2;
+                            float y = (Height - diameter) / 2;
+                            g.FillEllipse(marbleBrush, x, y, diameter, diameter);
+                        }
+                    }
+                    else
+                    {
+                        using (Brush marbleBrush = new SolidBrush(Color.Black))
+                        {
+                            float diameter = Math.Min(Width, Height) * 0.6f;
+                            float x = (Width - diameter) / 2;
+                            float y = (Height - diameter) / 2;
+                            g.FillEllipse(marbleBrush, x, y, diameter, diameter);
+                        }
                     }
                 }
+
             }
 
             //Add Tag as text

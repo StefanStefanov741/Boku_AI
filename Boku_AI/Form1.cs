@@ -168,13 +168,13 @@ namespace Boku_AI
             }
             //Check the tag property of the sender to determine which button was clicked
             string buttonTag = (sender as HexagonalButton).tag.ToString();
-            bool isWhiteMarble = false;
+            bool isWhiteMarble = gameState.GetisPlayer1Turn();
             bool successfulPlace = false;
+            HexagonalButton btn;
             foreach (HexagonalButton hex in gameState.grid) {
-                if (hex.tag == buttonTag && !hex.marblePlaced) {
-                    isWhiteMarble = gameState.placeMarble(buttonTag);
-                    hex.PlaceMarble(isWhiteMarble);
-                    successfulPlace = true;
+                if (hex.tag == buttonTag && (!hex.marblePlaced || (hex.marblePlaced && hex.canBeTaken)))
+                {
+                    successfulPlace = gameState.placeMarble(buttonTag);
                     break;
                 }
             }
@@ -196,6 +196,8 @@ namespace Boku_AI
                         break;
                     default:
                         //Game hasn't eneded
+                        //Check for capture
+                        gameState.CheckCapture(buttonTag, isWhiteMarble);
                         break;
                 }
             }

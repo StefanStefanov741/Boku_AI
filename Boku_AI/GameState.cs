@@ -20,6 +20,10 @@ namespace Boku_AI
 
         private char[] boardLetters = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J' };
 
+        List<List<HexagonalButton>> canBeTaken = new List<List<HexagonalButton>>();
+        List<string> canBeTakenTags = new List<string>();
+        List<string> takenLastRound = new List<string>();
+
         public GameState(List<HexagonalButton>startingGrid,bool player1turn= true) {
             if (startingGrid == null)
             {
@@ -32,27 +36,77 @@ namespace Boku_AI
         }
 
         public bool placeMarble(string hex_pos) {
-            isPlayer1Turn = !isPlayer1Turn;
-            List<HexagonalButton> gridCopy = grid.Select(hex => new HexagonalButton(hex)).ToList();
-            List<string> whiteMarblesCopy = new List<string>(whiteMarbles);
-            List<string> blackMarblesCopy = new List<string>(blackMarbles);
-            boardHistory.Add(gridCopy);
-            whiteMarblesHistory.Add(whiteMarblesCopy);
-            blackMarblesHistory.Add(blackMarblesCopy);
-            if (!isPlayer1Turn)
+            HexagonalButton btnToPlace = null;
+            foreach (HexagonalButton hex_btn in grid) {
+                if (hex_btn.tag == hex_pos) {
+                    btnToPlace = hex_btn;
+                    break;
+                }
+            }
+            if (canBeTaken.Count == 0)
             {
-                whiteMarbles.Add(hex_pos);
+                if (!takenLastRound.Contains(hex_pos))
+                {
+                    //Normal move
+                    isPlayer1Turn = !isPlayer1Turn;
+                    List<HexagonalButton> gridCopy = grid.Select(hex => new HexagonalButton(hex)).ToList();
+                    List<string> whiteMarblesCopy = new List<string>(whiteMarbles);
+                    List<string> blackMarblesCopy = new List<string>(blackMarbles);
+                    boardHistory.Add(gridCopy);
+                    whiteMarblesHistory.Add(whiteMarblesCopy);
+                    blackMarblesHistory.Add(blackMarblesCopy);
+                    btnToPlace.PlaceMarble(!isPlayer1Turn);
+                    if (!isPlayer1Turn)
+                    {
+                        whiteMarbles.Add(hex_pos);
+                    }
+                    else
+                    {
+                        blackMarbles.Add(hex_pos);
+                    }
+                    if (boardHistory.Count > 10)
+                    {
+                        boardHistory.RemoveAt(0);
+                        whiteMarblesHistory.RemoveAt(0);
+                        blackMarblesHistory.RemoveAt(0);
+                    }
+                    takenLastRound.Clear();
+                    return true;
+                }
+                else {
+                    return false;
+                }
             }
-            else
-            {
-                blackMarbles.Add(hex_pos);
+            else {
+                //Capture move
+                if (btnToPlace!=null && canBeTakenTags.Contains(hex_pos))
+                {
+                    btnToPlace.ClearMarble();
+                    whiteMarbles.Remove(hex_pos);
+                    blackMarbles.Remove(hex_pos);
+                    takenLastRound.Add(hex_pos);
+                    List<HexagonalButton> setToRemove = null;
+                    foreach (List<HexagonalButton> set in canBeTaken) {
+                        if (set.Contains(btnToPlace)) {
+                            setToRemove = set;
+                            foreach (HexagonalButton b in set) {
+                                canBeTakenTags.Remove(b.tag);
+                                b.canBeTaken = false;
+                                b.Invalidate();
+                            }
+                            break;
+                        }
+                    }
+                    if (setToRemove != null) {
+                        canBeTaken.Remove(setToRemove);
+                    }
+                }
+
+                if (canBeTaken.Count == 0) {
+                    isPlayer1Turn = !isPlayer1Turn;
+                }
+                return false;
             }
-            if (boardHistory.Count > 10) {
-                boardHistory.RemoveAt(0);
-                whiteMarblesHistory.RemoveAt(0);
-                blackMarblesHistory.RemoveAt(0);
-            }
-            return !isPlayer1Turn;
         }
 
         public bool UndoState() {
@@ -336,6 +390,96 @@ namespace Boku_AI
             }
 
             return gameEnded;
+        }
+
+        public bool CheckCapture(string lastPlaced, bool isWhite) {
+            List<List<String>> capturedPool = new List<List<String>>();
+            char letter = lastPlaced.ElementAt(0);
+            int number = int.Parse(lastPlaced.Substring(1));
+            int indexOfLetter = Array.IndexOf(boardLetters, letter);
+            if (isWhite)
+            {
+                //Check for capture with the same letter (Both ways)
+                if (blackMarbles.Contains(letter + (number - 1).ToString()) && blackMarbles.Contains(letter + (number - 2).ToString()) && whiteMarbles.Contains(letter + (number - 3).ToString())) {
+                    capturedPool.Add(new List<string>() { letter + (number - 1).ToString(), letter + (number - 2).ToString() });
+                }
+                if (blackMarbles.Contains(letter + (number + 1).ToString()) && blackMarbles.Contains(letter + (number + 2).ToString()) && whiteMarbles.Contains(letter + (number + 3).ToString())) {
+                    capturedPool.Add(new List<string>() { letter + (number + 1).ToString(), letter + (number + 2).ToString() });
+                }
+                //Check for capture with the same number (Both ways)
+                if (indexOfLetter - 3 >=0 && blackMarbles.Contains(boardLetters[indexOfLetter - 1].ToString() + number.ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter - 2].ToString() + number.ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter - 3].ToString() + number.ToString()))
+                {
+                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter - 1].ToString() + number.ToString(), boardLetters[indexOfLetter - 2].ToString() + number.ToString() });
+                }
+                if (indexOfLetter + 3 <= boardLetters.Length-1 && blackMarbles.Contains(boardLetters[indexOfLetter + 1].ToString() + number.ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter + 2].ToString() + number.ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter + 3].ToString() + number.ToString()))
+                {
+                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter + 1].ToString() + number.ToString(), boardLetters[indexOfLetter + 2].ToString() + number.ToString() });
+                }
+                //Check for capture vertically (Both ways)
+                if (indexOfLetter - 3 >= 0 && blackMarbles.Contains(boardLetters[indexOfLetter - 1].ToString() + (number-1).ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter - 2].ToString() + (number - 2).ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter - 3].ToString() + (number - 3).ToString()))
+                {
+                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter - 1].ToString() + (number - 1).ToString(), boardLetters[indexOfLetter - 2].ToString() + (number - 2).ToString() });
+                }
+                if (indexOfLetter + 3 <= boardLetters.Length - 1 && blackMarbles.Contains(boardLetters[indexOfLetter + 1].ToString() + (number + 1).ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter + 2].ToString() + (number + 2).ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter + 3].ToString() + (number + 3).ToString()))
+                {
+                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter + 1].ToString() + (number + 1).ToString(), boardLetters[indexOfLetter + 2].ToString() + (number + 2).ToString() });
+                }
+            }
+            else {
+                //Check for capture with the same letter (Both ways)
+                if (whiteMarbles.Contains(letter + (number - 1).ToString()) && whiteMarbles.Contains(letter + (number - 2).ToString()) && blackMarbles.Contains(letter + (number - 3).ToString()))
+                {
+                    capturedPool.Add(new List<string>() { letter + (number - 1).ToString(), letter + (number - 2).ToString() });
+                }
+                if (whiteMarbles.Contains(letter + (number + 1).ToString()) && whiteMarbles.Contains(letter + (number + 2).ToString()) && blackMarbles.Contains(letter + (number + 3).ToString()))
+                {
+                    capturedPool.Add(new List<string>() { letter + (number + 1).ToString(), letter + (number + 2).ToString() });
+                }
+                //Check for capture with the same number (Both ways)
+                if (indexOfLetter - 3 >= 0 && whiteMarbles.Contains(boardLetters[indexOfLetter - 1].ToString() + number.ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter - 2].ToString() + number.ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter - 3].ToString() + number.ToString()))
+                {
+                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter - 1].ToString() + number.ToString(), boardLetters[indexOfLetter - 2].ToString() + number.ToString() });
+                }
+                if (indexOfLetter + 3 <= boardLetters.Length - 1 && whiteMarbles.Contains(boardLetters[indexOfLetter + 1].ToString() + number.ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter + 2].ToString() + number.ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter + 3].ToString() + number.ToString()))
+                {
+                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter + 1].ToString() + number.ToString(), boardLetters[indexOfLetter + 2].ToString() + number.ToString() });
+                }
+                //Check for capture vertically (Both ways)
+                if (indexOfLetter - 3 >= 0 && whiteMarbles.Contains(boardLetters[indexOfLetter - 1].ToString() + (number - 1).ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter - 2].ToString() + (number - 2).ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter - 3].ToString() + (number - 3).ToString()))
+                {
+                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter - 1].ToString() + (number - 1).ToString(), boardLetters[indexOfLetter - 2].ToString() + (number - 2).ToString() });
+                }
+                if (indexOfLetter + 3 <= boardLetters.Length - 1 && whiteMarbles.Contains(boardLetters[indexOfLetter + 1].ToString() + (number + 1).ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter + 2].ToString() + (number + 2).ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter + 3].ToString() + (number + 3).ToString()))
+                {
+                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter + 1].ToString() + (number + 1).ToString(), boardLetters[indexOfLetter + 2].ToString() + (number + 2).ToString() });
+                }
+            }
+
+            if (capturedPool.Count > 0) {
+                foreach (List<string> capList in capturedPool) {
+                    List<HexagonalButton> button_set = new List<HexagonalButton>();
+                    foreach (string mrbl in capList) {
+                        foreach (HexagonalButton btn in grid) {
+                            if (btn.tag == mrbl) {
+                                btn.canBeTaken = true;
+                                btn.Invalidate();
+                                button_set.Add(btn);
+                                canBeTakenTags.Add(mrbl);
+                                break;
+                            }
+                        }
+                    }
+                    canBeTaken.Add(button_set);
+                }
+                //Switch the turn back to previous player
+                isPlayer1Turn = !isPlayer1Turn;
+            }
+
+            return capturedPool.Count > 0;
+        }
+
+        public bool GetisPlayer1Turn() {
+            return isPlayer1Turn;
         }
 
     }
