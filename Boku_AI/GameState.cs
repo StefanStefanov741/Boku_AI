@@ -113,7 +113,13 @@ namespace Boku_AI
                 boardHistory.RemoveAt(boardHistory.Count - 1);
                 whiteMarblesHistory.RemoveAt(whiteMarblesHistory.Count - 1);
                 blackMarblesHistory.RemoveAt(blackMarblesHistory.Count - 1);
-                isPlayer1Turn = !isPlayer1Turn;
+                if (canBeTaken.Count > 0)
+                {
+                    canBeTaken.Clear();
+                }
+                else {
+                    isPlayer1Turn = !isPlayer1Turn;
+                }
                 if (takenLastRoundHistory.Count > 0) {
                     takenLastRound = takenLastRoundHistory.ElementAt(takenLastRoundHistory.Count-1);
                     takenLastRoundHistory.RemoveAt(takenLastRoundHistory.Count-1);
@@ -473,6 +479,13 @@ namespace Boku_AI
             }
 
             return capturedPool.Count > 0;
+        }
+
+        public void CheckImpossibleTurn() {
+            if (blackMarbles.Count + whiteMarbles.Count == 79 && takenLastRound!="" && !whiteMarbles.Contains(takenLastRound) && !blackMarbles.Contains(takenLastRound)) {
+                //Skip player's turn because they can't make a move
+                isPlayer1Turn = !isPlayer1Turn;
+            }
         }
 
         public bool GetisPlayer1Turn() {

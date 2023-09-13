@@ -179,12 +179,14 @@ namespace Boku_AI
                 }
             }
             if (successfulPlace) {
-                gameEnded = gameState.CheckGameEnded(buttonTag, isWhiteMarble);
+                int gameEnded = gameState.CheckGameEnded(buttonTag, isWhiteMarble);
                 switch (gameEnded)
                 {
                     case 0:
                         //Its a draw
-                        MessageBox.Show("It's a Draw!");
+                        if (!gameState.CheckCapture(buttonTag, isWhiteMarble)) {
+                            MessageBox.Show("It's a Draw!");
+                        }
                         break;
                     case 1:
                         //White won
@@ -198,8 +200,11 @@ namespace Boku_AI
                         //Game hasn't eneded
                         //Check for capture
                         gameState.CheckCapture(buttonTag, isWhiteMarble);
+                        //Check for impossible move
+                        gameState.CheckImpossibleTurn();
                         break;
                 }
+
             }
         }
 
