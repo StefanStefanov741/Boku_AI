@@ -17,12 +17,13 @@ namespace Boku_AI
         private List<List<HexagonalButton>> boardHistory = new List<List<HexagonalButton>>();
         private List<List<string>> whiteMarblesHistory = new List<List<string>>();
         private List<List<string>> blackMarblesHistory = new List<List<string>>();
+        private List<string> takenLastRoundHistory = new List<string>();
 
         private char[] boardLetters = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J' };
 
-        List<List<HexagonalButton>> canBeTaken = new List<List<HexagonalButton>>();
+        List<HexagonalButton> canBeTaken = new List<HexagonalButton>();
         List<string> canBeTakenTags = new List<string>();
-        List<string> takenLastRound = new List<string>();
+        string takenLastRound = "";
 
         public GameState(List<HexagonalButton>startingGrid,bool player1turn= true) {
             if (startingGrid == null)
@@ -69,8 +70,10 @@ namespace Boku_AI
                         boardHistory.RemoveAt(0);
                         whiteMarblesHistory.RemoveAt(0);
                         blackMarblesHistory.RemoveAt(0);
+                        takenLastRoundHistory.RemoveAt(0);
                     }
-                    takenLastRound.Clear();
+                    takenLastRoundHistory.Add(takenLastRound);
+                    takenLastRound = "";
                     return true;
                 }
                 else {
@@ -84,22 +87,14 @@ namespace Boku_AI
                     btnToPlace.ClearMarble();
                     whiteMarbles.Remove(hex_pos);
                     blackMarbles.Remove(hex_pos);
-                    takenLastRound.Add(hex_pos);
-                    List<HexagonalButton> setToRemove = null;
-                    foreach (List<HexagonalButton> set in canBeTaken) {
-                        if (set.Contains(btnToPlace)) {
-                            setToRemove = set;
-                            foreach (HexagonalButton b in set) {
-                                canBeTakenTags.Remove(b.tag);
-                                b.canBeTaken = false;
-                                b.Invalidate();
-                            }
-                            break;
-                        }
+                    takenLastRound=hex_pos;
+                    btnToPlace.canBeTaken = false;
+                    btnToPlace.Invalidate();
+                    foreach (HexagonalButton b in canBeTaken) {
+                        b.canBeTaken = false;
+                        b.Invalidate();
                     }
-                    if (setToRemove != null) {
-                        canBeTaken.Remove(setToRemove);
-                    }
+                    canBeTaken.Clear();
                 }
 
                 if (canBeTaken.Count == 0) {
@@ -119,6 +114,10 @@ namespace Boku_AI
                 whiteMarblesHistory.RemoveAt(whiteMarblesHistory.Count - 1);
                 blackMarblesHistory.RemoveAt(blackMarblesHistory.Count - 1);
                 isPlayer1Turn = !isPlayer1Turn;
+                if (takenLastRoundHistory.Count > 0) {
+                    takenLastRound = takenLastRoundHistory.ElementAt(takenLastRoundHistory.Count-1);
+                    takenLastRoundHistory.RemoveAt(takenLastRoundHistory.Count-1);
+                }
                 return true;
             }
             else {
@@ -457,19 +456,17 @@ namespace Boku_AI
 
             if (capturedPool.Count > 0) {
                 foreach (List<string> capList in capturedPool) {
-                    List<HexagonalButton> button_set = new List<HexagonalButton>();
                     foreach (string mrbl in capList) {
                         foreach (HexagonalButton btn in grid) {
                             if (btn.tag == mrbl) {
                                 btn.canBeTaken = true;
                                 btn.Invalidate();
-                                button_set.Add(btn);
+                                canBeTaken.Add(btn);
                                 canBeTakenTags.Add(mrbl);
                                 break;
                             }
                         }
                     }
-                    canBeTaken.Add(button_set);
                 }
                 //Switch the turn back to previous player
                 isPlayer1Turn = !isPlayer1Turn;
