@@ -6,8 +6,8 @@ namespace Boku_AI
     {
         GameState gameState = new GameState(null);
         int gameEnded = -1;
-        bool player1AI = false;
-        bool player2AI = false;
+        BokuBot pl1_bot = null;
+        BokuBot pl2_bot = null;
 
         public Form1()
         {
@@ -163,28 +163,46 @@ namespace Boku_AI
 
         private void Hex_Click(object sender, EventArgs e)
         {
-            if (gameEnded > -1) {
+            //Check the tag property of the sender to determine which button was clicked
+            if (gameState.GetisPlayer1Turn() && pl1_bot == null)
+            {
+                string buttonTag = (sender as HexagonalButton).tag.ToString();
+                ExecMove(buttonTag);
+            }
+            else if (!gameState.GetisPlayer1Turn() && pl2_bot == null)
+            {
+                string buttonTag = (sender as HexagonalButton).tag.ToString();
+                ExecMove(buttonTag);
+            }
+            
+        }
+
+        private void ExecMove(string buttonTag) {
+            if (gameEnded > -1)
+            {
                 return;
             }
-            //Check the tag property of the sender to determine which button was clicked
-            string buttonTag = (sender as HexagonalButton).tag.ToString();
+
             bool isWhiteMarble = gameState.GetisPlayer1Turn();
             bool successfulPlace = false;
-            HexagonalButton btn;
-            foreach (HexagonalButton hex in gameState.grid) {
+
+            foreach (HexagonalButton hex in gameState.grid)
+            {
                 if (hex.tag == buttonTag && (!hex.marblePlaced || (hex.marblePlaced && hex.canBeTaken)))
                 {
                     successfulPlace = gameState.placeMarble(buttonTag);
                     break;
                 }
             }
-            if (successfulPlace) {
-                int gameEnded = gameState.CheckGameEnded(buttonTag, isWhiteMarble);
+            if (successfulPlace)
+            {
+                gameEnded = gameState.CheckGameEnded(buttonTag, isWhiteMarble);
                 switch (gameEnded)
                 {
                     case 0:
                         //Its a draw
-                        if (!gameState.CheckCapture(buttonTag, isWhiteMarble)) {
+                        if (!gameState.CheckCapture(buttonTag, isWhiteMarble))
+                        {
                             MessageBox.Show("It's a Draw!");
                         }
                         break;
@@ -205,7 +223,23 @@ namespace Boku_AI
                         break;
                 }
 
+                if (gameState.GetisPlayer1Turn() && pl1_bot != null)
+                {
+                    //Make Player 1 AI do a move
+                    ExecMove(pl1_bot.MakeMove(gameState));
+                }
+                else if (!gameState.GetisPlayer1Turn() && pl2_bot != null)
+                {
+                    //Make Player 2 AI do a move
+                    ExecMove(pl2_bot.MakeMove(gameState));
+                    int a = 1;
+                }
+
             }
+            else {
+                MessageBox.Show("Invalid Move! ("+buttonTag+")");
+            }
+
         }
 
         private void undo(object sender, EventArgs e)
@@ -220,7 +254,7 @@ namespace Boku_AI
 
         private void RedrawBoard() {
             this.Controls.Clear();
-            InitSidePanel(player1AI,player2AI);
+            InitSidePanel(pl1_bot != null, pl2_bot != null);
             foreach (HexagonalButton hex in gameState.grid) {
                 hex.Click += Hex_Click;    
                 this.Controls.Add(hex);
@@ -231,11 +265,14 @@ namespace Boku_AI
             if (comboBox1.SelectedItem.ToString().Equals("AI"))
             {
                 //Make AI take over
-                player1AI = true;
+                pl1_bot = new BokuBot(int.Parse(AI1_timePerMove_box.Text));
+                if (gameState.GetisPlayer1Turn()) {
+                    ExecMove(pl1_bot.MakeMove(gameState));
+                }
             }
             else {
                 //Let the player play
-                player1AI = false;
+                pl1_bot = null;
             }
         }
 
@@ -244,12 +281,16 @@ namespace Boku_AI
             if (comboBox2.SelectedItem.ToString().Equals("AI"))
             {
                 //Make AI take over
-                player2AI = true;
+                pl2_bot = new BokuBot(int.Parse(AI2_timePerMove_box.Text));
+                if (!gameState.GetisPlayer1Turn())
+                {
+                    ExecMove(pl2_bot.MakeMove(gameState));
+                }
             }
             else
             {
                 //Let the player play
-                player2AI = false;
+                pl2_bot = null;
             }
         }
 
@@ -257,8 +298,8 @@ namespace Boku_AI
         {
             gameEnded = -1;
             gameState = new GameState(null);
-            player1AI = false;
-            player2AI = false;
+            pl1_bot = null;
+            pl2_bot = null;
             BuildGrid();
             RedrawBoard();
         }

@@ -61,6 +61,22 @@
             this.comboBox1.TabIndex = 0;
             this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.changePlayer1);
             this.Controls.Add(this.comboBox1);
+            //AI 1 time per move box
+            this.AI1_timePerMove_box = new System.Windows.Forms.TextBox();
+            this.AI1_timePerMove_box.Location = new System.Drawing.Point(1081, 82);
+            this.AI1_timePerMove_box.Name = "textBox1";
+            this.AI1_timePerMove_box.Size = new System.Drawing.Size(35, 23);
+            this.AI1_timePerMove_box.TabIndex = 1;
+            this.AI1_timePerMove_box.Text = "5";
+            this.AI1_timePerMove_box.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.AI_timePerMove_box_numberHandler);
+            this.Controls.Add(this.AI1_timePerMove_box);
+            //Label for seconds AI1
+            this.AI1_s_label = new System.Windows.Forms.Label();
+            this.AI1_s_label.Text = "s";
+            this.AI1_s_label.ForeColor = System.Drawing.Color.White;
+            this.AI1_s_label.Location = new System.Drawing.Point(1116, 86);
+            this.AI1_s_label.AutoSize = true;
+            this.Controls.Add(this.AI1_s_label);
 
             //Player 2 Label
             this.player2label = new System.Windows.Forms.Label();
@@ -90,6 +106,22 @@
             this.comboBox2.TabIndex = 0;
             this.comboBox2.SelectedIndexChanged += new System.EventHandler(this.changePlayer2);
             this.Controls.Add(this.comboBox2);
+            //AI 2 time per move box
+            this.AI2_timePerMove_box = new System.Windows.Forms.TextBox();
+            this.AI2_timePerMove_box.Location = new System.Drawing.Point(1081, 158);
+            this.AI2_timePerMove_box.Name = "textBox1";
+            this.AI2_timePerMove_box.Size = new System.Drawing.Size(35, 23);
+            this.AI2_timePerMove_box.TabIndex = 1;
+            this.AI2_timePerMove_box.Text = "5";
+            this.AI2_timePerMove_box.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.AI_timePerMove_box_numberHandler);
+            this.Controls.Add(this.AI2_timePerMove_box);
+            //Label for seconds AI1
+            this.AI2_s_label = new System.Windows.Forms.Label();
+            this.AI2_s_label.Text = "s";
+            this.AI2_s_label.ForeColor = System.Drawing.Color.White;
+            this.AI2_s_label.Location = new System.Drawing.Point(1116, 162);
+            this.AI2_s_label.AutoSize = true;
+            this.Controls.Add(this.AI2_s_label);
 
             //Undo Button
             this.undoBtn = new System.Windows.Forms.Button();
@@ -114,6 +146,16 @@
             this.Controls.Add(this.restartBtn);
         }
 
+        private void AI_timePerMove_box_numberHandler(object sender, KeyPressEventArgs e)
+        {
+            //Allow only digits, backspace and delete
+            if (!char.IsDigit(e.KeyChar) && e.KeyChar != '\b' && e.KeyChar != 127)
+            {
+                e.Handled = true;
+            }
+        }
+
+
         #endregion
 
         private Button undoBtn;
@@ -122,5 +164,9 @@
         private Label player2label;
         private ComboBox comboBox1;
         private ComboBox comboBox2;
+        private TextBox AI1_timePerMove_box;
+        private TextBox AI2_timePerMove_box;
+        private Label AI1_s_label;
+        private Label AI2_s_label;
     }
 }
