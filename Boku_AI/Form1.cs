@@ -237,7 +237,7 @@ namespace Boku_AI
 
             }
             else {
-                //MessageBox.Show("Invalid Move! ("+buttonTag+")");
+                MessageBox.Show("Invalid Move! ("+buttonTag+")");
             }
 
         }
@@ -256,6 +256,7 @@ namespace Boku_AI
             this.Controls.Clear();
             InitSidePanel(pl1_bot != null, pl2_bot != null);
             foreach (HexagonalButton hex in gameState.grid) {
+                hex.Click -= Hex_Click;
                 hex.Click += Hex_Click;    
                 this.Controls.Add(hex);
             }
