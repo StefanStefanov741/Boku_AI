@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using static System.Windows.Forms.AxHost;
 
 namespace Boku_AI
@@ -14,55 +13,88 @@ namespace Boku_AI
         int moveTime;
         CancellationTokenSource cancellationTokenSource;
         bool isPlayer1;
-        bool hasMoreTime = true;
+        DateTime timeIsUp = DateTime.Now.AddDays(10);
 
         public BokuBot(bool isPl1, int move_time = 5) {
             this.moveTime = move_time;
             this.isPlayer1 = isPl1;
-            this.hasMoreTime = true;
+            this.timeIsUp = DateTime.Now.AddDays(10);
         }
 
         public async Task<string> MakeMove(GameState state)
         {
             string bestMove = state.freeHexes.ElementAt(0);
-            //Start the countdown timer
-            cancellationTokenSource = new CancellationTokenSource();
-            CancellationToken cancellationToken = cancellationTokenSource.Token;
-            Task.Run(() => StartCountdown(cancellationToken));
+            if (bestMove == state.takenLastRound) {
+                bestMove = state.freeHexes.ElementAt(1);
+            }
+            timeIsUp = DateTime.Now.AddSeconds(moveTime);
 
             //Start MiniMax Search
-            int timeoutMilliseconds = moveTime * 1000;
-
-
             int topScore = int.MinValue;
 
             //Start tree search
-            foreach (string move in state.freeHexes)
+            for (int maxDepth = 1; maxDepth < 3/*change to 81*/; maxDepth++)
             {
-                Task<int> scoreTask = Task.Run(() => MiniMaxScore(isPlayer1, new GameState(state), move, 1), cancellationToken);
-
-                //Check if the time ran out
-                if (Task.WaitAny(scoreTask, Task.Delay(timeoutMilliseconds)) == 1)
-                {
-                    //Time is up, stop the search
-                    //cancellationTokenSource.Cancel();
-                    hasMoreTime = false;
+                int currentDepthTopScore = int.MinValue;
+                string currentDepthTopMove = state.freeHexes.ElementAt(0);
+                if (state.canBeTakenTags.Count==0) {
+                    foreach (string move in state.freeHexes)
+                    {
+                        if (state.takenLastRound!=move) {
+                            if (timeIsUp > DateTime.Now)
+                            {
+                                int score = MiniMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth);
+                                if (score > currentDepthTopScore) {
+                                    currentDepthTopScore = score;
+                                    currentDepthTopMove = move;
+                                }
+                                if (score > topScore)
+                                {
+                                    topScore = score;
+                                    bestMove = move;
+                                }
+                                //Check if on the next depth we didnt found out that the previous depth best move is actually really bad
+                                if (move == bestMove && topScore > currentDepthTopScore) {
+                                    bestMove = currentDepthTopMove;
+                                    topScore = currentDepthTopScore;
+                                }
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
                 }
-                int score = await scoreTask;
+                else {
+                    bestMove = state.canBeTakenTags.ElementAt(0);
+                    foreach (string move in state.canBeTakenTags)
+                    {
+                        if (timeIsUp > DateTime.Now)
+                        {
+                            int score = MiniMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth);
 
-                if (score > topScore)
-                {
-                    topScore = score;
-                    bestMove = move;
+                            if (score > topScore)
+                            {
+                                topScore = score;
+                                bestMove = move;
+                            }
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
                 }
+                
             }
 
             return bestMove;
         }
 
-        private int MiniMaxScore(bool isWhitePlayer, GameState currentState, string movPos, int depth) {
+        private int MiniMaxScore(bool isWhitePlayer, GameState currentState, string movPos, int depth, int maxDepth) {
             //Apply move
-            currentState.placeMarble(movPos);
+            currentState.placeMarble(movPos,true);
 
             //Check if game is over
             int gameEnded = currentState.CheckGameEnded(movPos, isWhitePlayer);
@@ -80,7 +112,7 @@ namespace Boku_AI
                     }
                 case 2:
                     //Black won
-                    if (!isWhitePlayer)
+                    if (isWhitePlayer)
                     {
                         return (10000-depth);
                     }
@@ -92,39 +124,82 @@ namespace Boku_AI
                     break;
             }
             //Get intermediary score
-            int bestScoreSoFar = 0;
-            int worstScoreSoFar = 0;
+            int currentBoardScore = 0;
+            //Check if it captured
+            bool didCapture = currentState.CheckCapture(movPos,isWhitePlayer,true);
+            if (didCapture) {
+                //Choose which one to capture
+                if (isWhitePlayer==isPlayer1)
+                {
+                    currentBoardScore += 2000;
+                }
+                else
+                {
+                    currentBoardScore -= 2000;
+                }
+                int maxCapMoveValueScore = int.MinValue;
+                string bestCapMove = currentState.canBeTakenTags.ElementAt(0);
+                foreach (string capMove in currentState.canBeTakenTags)
+                {
+                    GameState capState = new GameState(currentState);
+                    capState.placeMarble(capMove, true);
+                    foreach (string move in capState.freeHexes)
+                    {
+                        if (timeIsUp > DateTime.Now)
+                        {
+                            int capMoveValue = MiniMaxScore(!isWhitePlayer, new GameState(capState), move, depth+1, depth + 2);
+                            if (capMoveValue > maxCapMoveValueScore)
+                            {
+                                maxCapMoveValueScore = capMoveValue;
+                                bestCapMove = capMove;
+                            }
+                        }
+                        else {
+                            break;
+                        }
+                    }
 
-            //Check if has time to go deeper
-            if (!hasMoreTime) {
-                return isWhitePlayer == isPlayer1 ? bestScoreSoFar : worstScoreSoFar;
+                }
+                currentState.placeMarble(bestCapMove,true);
             }
+            if (isWhitePlayer==isPlayer1)
+            {
+                currentBoardScore += currentState.ScoreBoard();
+            }
+            else
+            {
+                currentBoardScore -= currentState.ScoreBoard();
+            }
+            //Check if has time to go deeper
+            if (timeIsUp <= DateTime.Now || depth>=maxDepth) {       
+               return isWhitePlayer == isPlayer1 ? currentBoardScore : -currentBoardScore;
+            }
+
             //Go deeper
-            depth++;
             int maxScore = int.MinValue;
-            int minScore = int.MaxValue;
+
+            depth++;
             foreach (string move in currentState.freeHexes)
             {
-                int moveValue = MiniMaxScore(!isWhitePlayer, new GameState(currentState), move, depth);
-                if (moveValue > maxScore)
-                {
-                    maxScore = moveValue;
+                if (currentState.canBeTakenTags.Count > 0) {
+                    int wtf = 1;
                 }
-                if (moveValue < minScore)
+                if (timeIsUp > DateTime.Now)
                 {
-                    minScore = moveValue;
+                    int moveValue = MiniMaxScore(!isWhitePlayer, new GameState(currentState), move, depth, maxDepth);
+                    if (moveValue > maxScore)
+                    {
+                        maxScore = moveValue;
+                    }
+                }
+                else {
+                    break;
                 }
             }
 
-            //Return appropriate score depending on wether or not this is my turn
-            return isWhitePlayer==isPlayer1 ? maxScore : minScore;
-        }
+            maxScore += currentBoardScore;
 
-        private void StartCountdown(CancellationToken cancellationToken)
-        {
-            Thread.Sleep(moveTime * 1000);
-            //Stop the search
-            cancellationTokenSource.Cancel();
+            return -maxScore;
         }
 
     }

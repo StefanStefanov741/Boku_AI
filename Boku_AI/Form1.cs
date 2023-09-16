@@ -223,23 +223,27 @@ namespace Boku_AI
                         break;
                 }
 
-                if (gameState.GetisPlayer1Turn() && pl1_bot != null)
-                {
-                    //Make Player 1 AI do a move
-                    ExecMove(await pl1_bot.MakeMove(gameState));
-                }
-                else if (!gameState.GetisPlayer1Turn() && pl2_bot != null)
-                {
-                    //Make Player 2 AI do a move
-                    ExecMove(await pl2_bot.MakeMove(gameState));
-                    int a = 1;
-                }
+                Task.Run(() => makeBotMove());
 
             }
             else {
                 MessageBox.Show("Invalid Move! ("+buttonTag+")");
             }
 
+        }
+
+
+        private async void makeBotMove() {
+            if (gameState.GetisPlayer1Turn() && pl1_bot != null)
+            {
+                //Make Player 1 AI do a move
+                ExecMove(await pl1_bot.MakeMove(gameState));
+            }
+            else if (!gameState.GetisPlayer1Turn() && pl2_bot != null)
+            {
+                //Make Player 2 AI do a move
+                ExecMove(await pl2_bot.MakeMove(gameState));
+            }
         }
 
         private void undo(object sender, EventArgs e)

@@ -10,6 +10,7 @@ namespace Boku_AI
     internal class GameState
     {
         private bool isPlayer1Turn;
+        bool lastWasCapture = false;
 
         public List<HexagonalButton> grid;
         public List<string> freeHexes = new List<string>() { "A1","A2","A3","A4","A5","A6","B1","B2","B3","B4","B5","B6","B7","C1","C2","C3","C4","C5","C6","C7","C8",
@@ -29,8 +30,8 @@ namespace Boku_AI
         private char[] boardLetters = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J' };
 
         List<HexagonalButton> canBeTaken = new List<HexagonalButton>();
-        List<string> canBeTakenTags = new List<string>();
-        string takenLastRound = "";
+        public List<string> canBeTakenTags = new List<string>();
+        public string takenLastRound = "";
 
         public GameState(List<HexagonalButton>startingGrid,bool player1turn= true) {
             if (startingGrid == null)
@@ -59,7 +60,7 @@ namespace Boku_AI
             this.takenLastRound = gsToCopy.takenLastRound;
         }
 
-        public bool placeMarble(string hex_pos) {
+        public bool placeMarble(string hex_pos, bool logical=false) {
             HexagonalButton btnToPlace = null;
             foreach (HexagonalButton hex_btn in grid) {
                 if (hex_btn.tag == hex_pos) {
@@ -72,12 +73,15 @@ namespace Boku_AI
                 if (!takenLastRound.Contains(hex_pos))
                 {
                     //Normal move
+                    lastWasCapture = false;
                     isPlayer1Turn = !isPlayer1Turn;
                     boardHistory.Add(grid.Select(hex => new HexagonalButton(hex)).ToList());
                     freeHexesHistory.Add(new List<string>(freeHexes));
                     whiteMarblesHistory.Add(new List<string>(whiteMarbles));
                     blackMarblesHistory.Add(new List<string>(blackMarbles));
-                    btnToPlace.PlaceMarble(!isPlayer1Turn);
+                    if (!logical) {
+                        btnToPlace.PlaceMarble(!isPlayer1Turn);
+                    }
                     freeHexes.Remove(hex_pos);
                     if (!isPlayer1Turn)
                     {
@@ -105,20 +109,27 @@ namespace Boku_AI
             }
             else {
                 //Capture move
+                lastWasCapture = true;
                 if (btnToPlace!=null && canBeTakenTags.Contains(hex_pos))
                 {
-                    btnToPlace.ClearMarble();
                     freeHexes.Add(hex_pos);
                     whiteMarbles.Remove(hex_pos);
                     blackMarbles.Remove(hex_pos);
                     takenLastRound=hex_pos;
-                    btnToPlace.canBeTaken = false;
-                    btnToPlace.Invalidate();
+                    if (!logical)
+                    {
+                        btnToPlace.ClearMarble();
+                        btnToPlace.canBeTaken = false;
+                        btnToPlace.Invalidate();
+                    }
                     foreach (HexagonalButton b in canBeTaken) {
-                        b.canBeTaken = false;
-                        b.Invalidate();
+                        if (!logical) {
+                            b.canBeTaken = false;
+                            b.Invalidate();
+                        }
                     }
                     canBeTaken.Clear();
+                    canBeTakenTags.Clear();
                 }
 
                 if (canBeTaken.Count == 0) {
@@ -155,6 +166,13 @@ namespace Boku_AI
             else {
                 return false;
             }
+        }
+
+        public int ScoreBoard() {
+            //Positive points for white and negative points for black are combined for an overall score of the board
+            int score = 0;
+
+            return score;
         }
 
         public int CheckGameEnded(string lastPlaced,bool isWhite) {
@@ -423,7 +441,10 @@ namespace Boku_AI
             return gameEnded;
         }
 
-        public bool CheckCapture(string lastPlaced, bool isWhite) {
+        public bool CheckCapture(string lastPlaced, bool isWhite, bool logical = false) {
+            if (lastWasCapture) {
+                return false;
+            }
             List<List<String>> capturedPool = new List<List<String>>();
             char letter = lastPlaced.ElementAt(0);
             int number = int.Parse(lastPlaced.Substring(1));
@@ -491,8 +512,10 @@ namespace Boku_AI
                     foreach (string mrbl in capList) {
                         foreach (HexagonalButton btn in grid) {
                             if (btn.tag == mrbl) {
-                                btn.canBeTaken = true;
-                                btn.Invalidate();
+                                if (!logical) {
+                                    btn.canBeTaken = true;
+                                    btn.Invalidate();
+                                }
                                 canBeTaken.Add(btn);
                                 canBeTakenTags.Add(mrbl);
                                 break;
