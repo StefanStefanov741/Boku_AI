@@ -29,11 +29,13 @@ namespace Boku_AI
             }
             timeIsUp = DateTime.Now.AddSeconds(moveTime);
 
-            //Start MiniMax Search
+            //Start NegaMax Search
             int topScore = int.MinValue;
+            int alpha = int.MinValue;
+            int beta = int.MaxValue;
 
             //Start tree search
-            for (int maxDepth = 1; maxDepth < 3/*change to 81*/; maxDepth++)
+            for (int maxDepth = 1; maxDepth < 80; maxDepth++)
             {
                 int currentDepthTopScore = int.MinValue;
                 string currentDepthTopMove = state.freeHexes.ElementAt(0);
@@ -43,20 +45,27 @@ namespace Boku_AI
                         if (state.takenLastRound!=move) {
                             if (timeIsUp > DateTime.Now)
                             {
-                                int score = MiniMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth);
+                                int score = NegaMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth,alpha,beta);
                                 if (score > currentDepthTopScore) {
                                     currentDepthTopScore = score;
                                     currentDepthTopMove = move;
                                 }
-                                if (score > topScore)
+                                if (currentDepthTopScore > alpha) {
+                                    alpha = currentDepthTopScore;
+                                }
+                                if (currentDepthTopScore > topScore)
                                 {
-                                    topScore = score;
+                                    topScore = currentDepthTopScore;
                                     bestMove = move;
                                 }
                                 //Check if on the next depth we didnt found out that the previous depth best move is actually really bad
-                                if (move == bestMove && topScore > currentDepthTopScore) {
+                                if (move == bestMove && topScore > currentDepthTopScore)
+                                {
                                     bestMove = currentDepthTopMove;
                                     topScore = currentDepthTopScore;
+                                }
+                                if (currentDepthTopScore >= beta) {
+                                    break;
                                 }
                             }
                             else
@@ -72,12 +81,30 @@ namespace Boku_AI
                     {
                         if (timeIsUp > DateTime.Now)
                         {
-                            int score = MiniMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth);
-
-                            if (score > topScore)
+                            int score = NegaMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth, alpha, beta);
+                            if (score > currentDepthTopScore)
                             {
-                                topScore = score;
+                                currentDepthTopScore = score;
+                                currentDepthTopMove = move;
+                            }
+                            if (currentDepthTopScore > alpha)
+                            {
+                                alpha = currentDepthTopScore;
+                            }
+                            if (currentDepthTopScore > topScore)
+                            {
+                                topScore = currentDepthTopScore;
                                 bestMove = move;
+                            }
+                            //Check if on the next depth we didnt found out that the previous depth best move is actually really bad
+                            if (move == bestMove && topScore > currentDepthTopScore)
+                            {
+                                bestMove = currentDepthTopMove;
+                                topScore = currentDepthTopScore;
+                            }
+                            if (currentDepthTopScore >= beta)
+                            {
+                                break;
                             }
                         }
                         else
@@ -92,7 +119,7 @@ namespace Boku_AI
             return bestMove;
         }
 
-        private int MiniMaxScore(bool isWhitePlayer, GameState currentState, string movPos, int depth, int maxDepth) {
+        private int NegaMaxScore(bool isWhitePlayer, GameState currentState, string movPos, int depth, int maxDepth,int alpha, int beta) {
             //Apply move
             currentState.placeMarble(movPos,true);
 
@@ -101,24 +128,25 @@ namespace Boku_AI
             switch (gameEnded) {
                 case 0:
                     //Draw
-                    return -100;
+                    return -10;
                 case 1:
                     //White won
-                    if (isWhitePlayer) {
-                        return (10000-depth);
+                    if (isWhitePlayer)
+                    {
+                        return (10000 - depth);
                     }
                     else {
-                        return -(11000 + depth);
+                        return -(10000 - depth);
                     }
                 case 2:
                     //Black won
-                    if (isWhitePlayer)
+                    if (!isWhitePlayer)
                     {
-                        return (10000-depth);
+                        return (10000 - depth);
                     }
                     else
                     {
-                        return - (11000 + depth);
+                        return -(10000 - depth);
                     }
                 default:
                     break;
@@ -129,15 +157,10 @@ namespace Boku_AI
             bool didCapture = currentState.CheckCapture(movPos,isWhitePlayer,true);
             if (didCapture) {
                 //Choose which one to capture
-                if (isWhitePlayer==isPlayer1)
-                {
-                    currentBoardScore += 2000;
-                }
-                else
-                {
-                    currentBoardScore -= 2000;
-                }
+                currentBoardScore += 500;
                 int maxCapMoveValueScore = int.MinValue;
+                int captureAlpha = int.MinValue;
+                int captureBeta = int.MaxValue;
                 string bestCapMove = currentState.canBeTakenTags.ElementAt(0);
                 foreach (string capMove in currentState.canBeTakenTags)
                 {
@@ -147,11 +170,17 @@ namespace Boku_AI
                     {
                         if (timeIsUp > DateTime.Now)
                         {
-                            int capMoveValue = MiniMaxScore(!isWhitePlayer, new GameState(capState), move, depth+1, depth + 2);
+                            int capMoveValue = NegaMaxScore(!isWhitePlayer, new GameState(capState), move, depth+1, depth + 2, captureAlpha, captureBeta);
                             if (capMoveValue > maxCapMoveValueScore)
                             {
                                 maxCapMoveValueScore = capMoveValue;
                                 bestCapMove = capMove;
+                            }
+                            if (maxCapMoveValueScore > captureAlpha) {
+                                captureAlpha = maxCapMoveValueScore;
+                            }
+                            if (maxCapMoveValueScore >= captureBeta) {
+                                break;
                             }
                         }
                         else {
@@ -162,34 +191,31 @@ namespace Boku_AI
                 }
                 currentState.placeMarble(bestCapMove,true);
             }
-            if (isWhitePlayer==isPlayer1)
-            {
-                currentBoardScore += currentState.ScoreBoard();
+            if (depth == 1) {
+                int pause = 1;
             }
-            else
-            {
-                currentBoardScore -= currentState.ScoreBoard();
-            }
+            currentBoardScore += currentState.ScoreBoard();
             //Check if has time to go deeper
-            if (timeIsUp <= DateTime.Now || depth>=maxDepth) {       
-               return isWhitePlayer == isPlayer1 ? currentBoardScore : -currentBoardScore;
+            if (timeIsUp <= DateTime.Now || depth>=maxDepth) {
+                return currentBoardScore;
             }
 
             //Go deeper
             int maxScore = int.MinValue;
-
-            depth++;
             foreach (string move in currentState.freeHexes)
             {
-                if (currentState.canBeTakenTags.Count > 0) {
-                    int wtf = 1;
-                }
                 if (timeIsUp > DateTime.Now)
                 {
-                    int moveValue = MiniMaxScore(!isWhitePlayer, new GameState(currentState), move, depth, maxDepth);
+                    int moveValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), move, depth+1, maxDepth,-beta, -alpha);
                     if (moveValue > maxScore)
                     {
                         maxScore = moveValue;
+                    }
+                    if (maxScore > alpha) {
+                        alpha = maxScore;
+                    }
+                    if (maxScore >= beta) {
+                        break;
                     }
                 }
                 else {
