@@ -75,7 +75,7 @@ namespace Boku_AI
                     //Normal move
                     lastWasCapture = false;
                     isPlayer1Turn = !isPlayer1Turn;
-                    boardHistory.Add(grid.Select(hex => new HexagonalButton(hex)).ToList());
+                    boardHistory.Add(grid.Select(hex => hex.Copy()).ToList());
                     freeHexesHistory.Add(new List<string>(freeHexes));
                     whiteMarblesHistory.Add(new List<string>(whiteMarbles));
                     blackMarblesHistory.Add(new List<string>(blackMarbles));
@@ -119,8 +119,6 @@ namespace Boku_AI
                     if (!logical)
                     {
                         btnToPlace.ClearMarble();
-                        btnToPlace.canBeTaken = false;
-                        btnToPlace.Invalidate();
                     }
                     foreach (HexagonalButton b in canBeTaken) {
                         if (!logical) {

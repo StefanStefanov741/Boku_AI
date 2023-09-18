@@ -10,22 +10,21 @@ public class HexagonalButton : Control
     public bool marblePlaced;
     public bool canBeTaken = false;
 
-    public HexagonalButton(string t, bool mrblPlaced = false, bool isMrblWhite = false)
+    public HexagonalButton(string t, bool mrblPlaced = false, bool isMrblWhite = false, bool disableOnResize=false)
     {
         this.tag = t;
         this.marblePlaced = mrblPlaced;
         this.isWhiteMarble = isMrblWhite;
     }
 
-    public HexagonalButton(HexagonalButton btn)
+    public HexagonalButton Copy()
     {
-        this.tag = btn.tag;
-        this.marblePlaced = btn.marblePlaced;
-        this.isWhiteMarble = btn.isWhiteMarble;
-        this.Height = btn.Height;
-        this.Width = btn.Width;
-        this.Location = btn.Location;
-        this.canBeTaken= btn.canBeTaken;
+        var copy = new HexagonalButton(tag, marblePlaced, isWhiteMarble,true);
+        copy.Height = this.Height;
+        copy.Width = this.Width;
+        copy.Location = this.Location;
+        copy.canBeTaken = this.canBeTaken;
+        return copy;
     }
 
     public void PlaceMarble(bool isWhite)
@@ -42,8 +41,8 @@ public class HexagonalButton : Control
 
     public void ClearMarble() {
         marblePlaced = false;
-        marblePlaced = false;
         canBeTaken = false;
+        Invalidate();
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -123,11 +122,6 @@ public class HexagonalButton : Control
                 g.DrawString(buttonText, font, textBrush, textLocation);
             }
         }
-    }
-
-    protected override void OnResize(EventArgs e)
-    {
-        base.OnResize(e);
 
         //Recreate the region to match the hex size
         using (GraphicsPath path = new GraphicsPath())
@@ -148,4 +142,5 @@ public class HexagonalButton : Control
             this.Region = new Region(path);
         }
     }
+
 }
