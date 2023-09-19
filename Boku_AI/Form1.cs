@@ -251,9 +251,10 @@ namespace Boku_AI
             if(gameEnded > -1) {
                 return;
             }
+            /*
             if (gameState.UndoState()) {
                 RedrawBoard();
-            }
+            }*/
         }
 
         private void RedrawBoard() {
