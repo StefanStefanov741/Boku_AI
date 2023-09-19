@@ -94,7 +94,6 @@ namespace Boku_AI
                 if (!takenLastRound.Contains(hex_pos))
                 {
                     //Normal move
-                    Debug.WriteLine("Place");
                     lastWasCapture = false;
                     isPlayer1Turn = !isPlayer1Turn;
                     takenLastRound = "";
@@ -195,13 +194,13 @@ namespace Boku_AI
             }
         }
 
-        public int EvaluateBoard()
+        public int EvaluateBoard(bool isWhitePlayer)
         {
             //Positive points for white and negative points for black are combined for an overall score of the board
             int score = 0;
-
+            Thread.Sleep(10);
             score += new Random().Next(-100,100);
-            return score;
+            return isWhitePlayer ? score : -score;
         }
 
         public int CheckGameEnded(string lastPlaced, bool isWhite)
