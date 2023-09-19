@@ -22,7 +22,6 @@ namespace Boku_AI
         private List<string> whiteMarbles = new List<string>();
         private List<string> blackMarbles = new List<string>();
 
-        private List<List<HexagonalButton>> boardHistory = new List<List<HexagonalButton>>();
         private List<List<string>> freeHexesHistory = new List<List<string>>();
         private List<List<string>> whiteMarblesHistory = new List<List<string>>();
         private List<List<string>> blackMarblesHistory = new List<List<string>>();
@@ -54,7 +53,6 @@ namespace Boku_AI
             this.freeHexes = new List<string>(gsToCopy.freeHexes);
             this.whiteMarbles = new List<string>(gsToCopy.whiteMarbles);
             this.blackMarbles = new List<string>(gsToCopy.blackMarbles);
-            this.boardHistory = new List<List<HexagonalButton>>(gsToCopy.boardHistory);
             this.freeHexesHistory = new List<List<string>>(gsToCopy.freeHexesHistory);
             this.whiteMarblesHistory = new List<List<string>>(gsToCopy.whiteMarblesHistory);
             this.blackMarblesHistory = new List<List<string>>(gsToCopy.blackMarblesHistory);
@@ -102,7 +100,6 @@ namespace Boku_AI
                     takenLastRound = "";
                     if (!logical)
                     {
-                        boardHistory.Add(grid.Select(hex => hex.Copy()).ToList());
                         freeHexesHistory.Add(new List<string>(freeHexes));
                         whiteMarblesHistory.Add(new List<string>(whiteMarbles));
                         blackMarblesHistory.Add(new List<string>(blackMarbles));
@@ -118,9 +115,8 @@ namespace Boku_AI
                     {
                         blackMarbles.Add(hex_pos);
                     }
-                    if (!logical && boardHistory.Count > 10)
+                    if (!logical && freeHexesHistory.Count > 10)
                     {
-                        boardHistory.RemoveAt(0);
                         whiteMarblesHistory.RemoveAt(0);
                         blackMarblesHistory.RemoveAt(0);
                         takenLastRoundHistory.RemoveAt(0);
@@ -170,16 +166,15 @@ namespace Boku_AI
 
         public bool UndoState()
         {
-            if (boardHistory.Count > 0)
+            if (freeHexesHistory.Count > 0)
             {
-                grid = boardHistory.Last();
                 whiteMarbles = whiteMarblesHistory.Last();
                 blackMarbles = blackMarblesHistory.Last();
                 freeHexes = freeHexesHistory.Last();
-                boardHistory.RemoveAt(boardHistory.Count - 1);
                 whiteMarblesHistory.RemoveAt(whiteMarblesHistory.Count - 1);
                 blackMarblesHistory.RemoveAt(blackMarblesHistory.Count - 1);
                 freeHexesHistory.RemoveAt(freeHexesHistory.Count - 1);
+                CorrectBoard();
                 if (canBeTaken.Count > 0)
                 {
                     canBeTaken.Clear();
