@@ -45,7 +45,7 @@ namespace Boku_AI
                         if (state.takenLastRound!=move) {
                             if (timeIsUp > DateTime.Now)
                             {
-                                int score = NegaMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth,alpha,beta);
+                                int score = -NegaMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth,alpha,beta);
                                 if (score > currentDepthTopScore) {
                                     currentDepthTopScore = score;
                                     currentDepthTopMove = move;
@@ -81,7 +81,7 @@ namespace Boku_AI
                     {
                         if (timeIsUp > DateTime.Now)
                         {
-                            int score = NegaMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth, alpha, beta);
+                            int score = -NegaMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth, alpha, beta);
                             if (score > currentDepthTopScore)
                             {
                                 currentDepthTopScore = score;
@@ -128,25 +128,25 @@ namespace Boku_AI
             switch (gameEnded) {
                 case 0:
                     //Draw
-                    return -10;
+                    return 0;
                 case 1:
                     //White won
                     if (isWhitePlayer)
                     {
-                        return (10000 - depth);
+                        return (100000 - depth);
                     }
                     else {
-                        return -(10000 - depth);
+                        return -(100000 - depth);
                     }
                 case 2:
                     //Black won
                     if (!isWhitePlayer)
                     {
-                        return (10000 - depth);
+                        return (100000 - depth);
                     }
                     else
                     {
-                        return -(10000 - depth);
+                        return -(100000 - depth);
                     }
                 default:
                     break;
@@ -157,7 +157,7 @@ namespace Boku_AI
             bool didCapture = currentState.CheckCapture(movPos,isWhitePlayer,true);
             if (didCapture) {
                 //Choose which one to capture
-                currentBoardScore += 500;
+                currentBoardScore += 800;
                 int maxCapMoveValueScore = int.MinValue;
                 int captureAlpha = int.MinValue;
                 int captureBeta = int.MaxValue;
@@ -203,7 +203,7 @@ namespace Boku_AI
             {
                 if (timeIsUp > DateTime.Now)
                 {
-                    int moveValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), move, depth+1, maxDepth,-beta, -alpha);
+                    int moveValue = -NegaMaxScore(!isWhitePlayer, new GameState(currentState), move, depth+1, maxDepth,-beta, -alpha);
                     if (moveValue > maxScore)
                     {
                         maxScore = moveValue;
@@ -219,10 +219,9 @@ namespace Boku_AI
                     break;
                 }
             }
+            maxScore -= currentBoardScore;
 
-            maxScore += currentBoardScore;
-
-            return -maxScore;
+            return maxScore;
         }
 
     }
