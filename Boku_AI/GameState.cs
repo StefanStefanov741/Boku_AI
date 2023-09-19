@@ -93,8 +93,8 @@ namespace Boku_AI
             {
                 if (!takenLastRound.Contains(hex_pos))
                 {
-                    Debug.WriteLine("Place");
                     //Normal move
+                    Debug.WriteLine("Place");
                     lastWasCapture = false;
                     isPlayer1Turn = !isPlayer1Turn;
                     takenLastRound = "";
@@ -132,7 +132,6 @@ namespace Boku_AI
             else
             {
                 //Capture move
-                Debug.WriteLine("Capture");
                 lastWasCapture = true;
                 if (btnToPlace != null && canBeTakenTags.Contains(hex_pos))
                 {
