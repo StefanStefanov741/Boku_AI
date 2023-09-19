@@ -195,11 +195,12 @@ namespace Boku_AI
             }
         }
 
-        public int ScoreBoard()
+        public int EvaluateBoard()
         {
             //Positive points for white and negative points for black are combined for an overall score of the board
             int score = 0;
 
+            score += new Random().Next(-100,100);
             return score;
         }
 

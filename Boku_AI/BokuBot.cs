@@ -191,10 +191,7 @@ namespace Boku_AI
                 }
                 currentState.placeMarble(bestCapMove,true);
             }
-            if (depth == 1) {
-                int pause = 1;
-            }
-            currentBoardScore += currentState.ScoreBoard();
+            currentBoardScore += currentState.EvaluateBoard();
             //Check if has time to go deeper
             if (timeIsUp <= DateTime.Now || depth>=maxDepth) {
                 return currentBoardScore;
