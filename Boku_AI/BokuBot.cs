@@ -21,207 +21,153 @@ namespace Boku_AI
             this.timeIsUp = DateTime.Now.AddDays(10);
         }
 
+        struct MoveStruct{
+            public int score;
+            public string move;
+        }
+
         public async Task<string> MakeMove(GameState state)
         {
-            string bestMove = state.freeHexes.ElementAt(0);
-            if (bestMove == state.takenLastRound) {
-                bestMove = state.freeHexes.ElementAt(1);
+            MoveStruct bestMove = new MoveStruct();
+            bestMove.move = state.freeHexes.ElementAt(0);
+            if (bestMove.move == state.takenLastRound) {
+                bestMove.move = state.freeHexes.ElementAt(1);
             }
             timeIsUp = DateTime.Now.AddSeconds(moveTime);
 
             //Start NegaMax Search
-            int topScore = int.MinValue;
+            bestMove.score = int.MinValue;
             int alpha = int.MinValue;
             int beta = int.MaxValue;
 
             //Start tree search
-            for (int maxDepth = 1; maxDepth < 80; maxDepth++)
+            for (int maxDepth = 1; maxDepth < 81; maxDepth++)
             {
-                int currentDepthTopScore = int.MinValue;
-                string currentDepthTopMove = state.freeHexes.ElementAt(0);
-                if (state.canBeTakenTags.Count==0) {
-                    foreach (string move in state.freeHexes)
+                if (timeIsUp > DateTime.Now) {
+                    MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta);
+                    bestMove.score = currentDepthMove.score;
+                    bestMove.move = currentDepthMove.move;
+                } 
+            }
+            return bestMove.move;
+        }
+
+        private MoveStruct NegaMaxScore(bool isWhitePlayer, GameState entryState, int depth,int alpha, int beta) {
+            MoveStruct bestMove = new MoveStruct();
+            bestMove.score = int.MinValue;
+            List<string> iterationHexes;
+            if (entryState.canBeTakenTags.Count == 0)
+            {
+                iterationHexes = new List<string>(entryState.freeHexes);
+                bestMove.move = iterationHexes.ElementAt(0);
+                if (bestMove.move == entryState.takenLastRound)
+                {
+                    bestMove.move = iterationHexes.ElementAt(1);
+                }
+            }
+            else {
+                iterationHexes = new List<string>(entryState.canBeTakenTags);
+                bestMove.move = entryState.canBeTakenTags.ElementAt(1);
+            }
+            foreach (string move in iterationHexes)
+            {
+                GameState currentState = new GameState(entryState);
+                int currentBoardScore = 0;
+                if (currentState.takenLastRound != move) {
+                    //Apply move
+                    currentState.placeMarble(move, true);
+
+                    //Check if game is over
+                    int gameEnded = currentState.CheckGameEnded(move, isWhitePlayer);
+                    switch (gameEnded)
                     {
-                        if (state.takenLastRound!=move) {
-                            if (timeIsUp > DateTime.Now)
+                        case 0:
+                            //Draw
+                            bestMove.move = move;
+                            bestMove.score = 0;
+                            return bestMove;
+                        case 1:
+                            //White won
+                            if (isWhitePlayer)
                             {
-                                int score = -NegaMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth,alpha,beta);
-                                if (score > currentDepthTopScore) {
-                                    currentDepthTopScore = score;
-                                    currentDepthTopMove = move;
-                                }
-                                if (currentDepthTopScore > alpha) {
-                                    alpha = currentDepthTopScore;
-                                }
-                                if (currentDepthTopScore > topScore)
-                                {
-                                    topScore = currentDepthTopScore;
-                                    bestMove = move;
-                                }
-                                //Check if on the next depth we didnt found out that the previous depth best move is actually really bad
-                                if (move == bestMove && topScore > currentDepthTopScore)
-                                {
-                                    bestMove = currentDepthTopMove;
-                                    topScore = currentDepthTopScore;
-                                }
-                                if (currentDepthTopScore >= beta) {
-                                    break;
-                                }
+                                bestMove.move = move;
+                                bestMove.score = 1000000 + depth;
+                                return bestMove;
                             }
                             else
                             {
-                                break;
+                                bestMove.move = move;
+                                bestMove.score = -(1000000 + depth);
+                                return bestMove;
                             }
-                        }
+                        case 2:
+                            //Black won
+                            if (!isWhitePlayer)
+                            {
+                                bestMove.move = move;
+                                bestMove.score = 1000000 + depth;
+                                return bestMove;
+                            }
+                            else
+                            {
+                                bestMove.move = move;
+                                bestMove.score = -(1000000 + depth);
+                                return bestMove;
+                            }
+                        default:
+                            break;
                     }
-                }
-                else {
-                    bestMove = state.canBeTakenTags.ElementAt(0);
-                    foreach (string move in state.canBeTakenTags)
+
+                    //Get intermediary score
+                    //Check if it captured
+                    bool didCapture = currentState.CheckCapture(move, isWhitePlayer, true);
+                    if (didCapture)
                     {
-                        if (timeIsUp > DateTime.Now)
+                        //Choose which one to capture
+                        currentBoardScore += 800;
+                        int maxCapMoveValueScore = int.MinValue;
+                        int captureAlpha = int.MinValue;
+                        int captureBeta = int.MaxValue;
+                        string bestCapMove = currentState.canBeTakenTags.ElementAt(1); //Replace with logic for deciding on the best capture move
+
+                        currentState.placeMarble(bestCapMove, true);
+                    }
+
+                    //Add current baord evaluation value to the current score
+                    currentBoardScore += currentState.EvaluateBoard(isWhitePlayer);
+
+                    if (timeIsUp > DateTime.Now && depth > 1)
+                    {
+                        //Go Deeper
+                        MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha);
+                        int nextScore = -nextValue.score;
+                        nextScore += currentBoardScore;
+                        if (nextScore > bestMove.score)
                         {
-                            int score = -NegaMaxScore(isPlayer1, new GameState(state), move, 1, maxDepth, alpha, beta);
-                            if (score > currentDepthTopScore)
-                            {
-                                currentDepthTopScore = score;
-                                currentDepthTopMove = move;
-                            }
-                            if (currentDepthTopScore > alpha)
-                            {
-                                alpha = currentDepthTopScore;
-                            }
-                            if (currentDepthTopScore > topScore)
-                            {
-                                topScore = currentDepthTopScore;
-                                bestMove = move;
-                            }
-                            //Check if on the next depth we didnt found out that the previous depth best move is actually really bad
-                            if (move == bestMove && topScore > currentDepthTopScore)
-                            {
-                                bestMove = currentDepthTopMove;
-                                topScore = currentDepthTopScore;
-                            }
-                            if (currentDepthTopScore >= beta)
-                            {
-                                break;
-                            }
+                            bestMove.score = nextScore;
+                            bestMove.move = move;
                         }
-                        else
+                        if (bestMove.score > alpha)
+                        {
+                            alpha = bestMove.score;
+                        }
+                        if (bestMove.score >= beta)
                         {
                             break;
                         }
                     }
+                    else {
+                        //Evaluate so far
+                        if (currentBoardScore > bestMove.score)
+                        {
+                            bestMove.score = currentBoardScore;
+                            bestMove.move = move;
+                        }
+                    }
                 }
-                
             }
 
             return bestMove;
-        }
-
-        private int NegaMaxScore(bool isWhitePlayer, GameState currentState, string movPos, int depth, int maxDepth,int alpha, int beta) {
-            //Apply move
-            currentState.placeMarble(movPos,true);
-
-            //Check if game is over
-            int gameEnded = currentState.CheckGameEnded(movPos, isWhitePlayer);
-            switch (gameEnded) {
-                case 0:
-                    //Draw
-                    return 0;
-                case 1:
-                    //White won
-                    if (isWhitePlayer)
-                    {
-                        return (100000 - depth);
-                    }
-                    else {
-                        return -(100000 - depth);
-                    }
-                case 2:
-                    //Black won
-                    if (!isWhitePlayer)
-                    {
-                        return (100000 - depth);
-                    }
-                    else
-                    {
-                        return -(100000 - depth);
-                    }
-                default:
-                    break;
-            }
-            //Get intermediary score
-            int currentBoardScore = 0;
-            //Check if it captured
-            bool didCapture = currentState.CheckCapture(movPos,isWhitePlayer,true);
-            if (didCapture) {
-                //Choose which one to capture
-                currentBoardScore += 800;
-                int maxCapMoveValueScore = int.MinValue;
-                int captureAlpha = int.MinValue;
-                int captureBeta = int.MaxValue;
-                string bestCapMove = currentState.canBeTakenTags.ElementAt(0);
-                foreach (string capMove in currentState.canBeTakenTags)
-                {
-                    GameState capState = new GameState(currentState);
-                    capState.placeMarble(capMove, true);
-                    foreach (string move in capState.freeHexes)
-                    {
-                        if (timeIsUp > DateTime.Now)
-                        {
-                            int capMoveValue = NegaMaxScore(!isWhitePlayer, new GameState(capState), move, depth+1, depth + 2, captureAlpha, captureBeta);
-                            if (capMoveValue > maxCapMoveValueScore)
-                            {
-                                maxCapMoveValueScore = capMoveValue;
-                                bestCapMove = capMove;
-                            }
-                            if (maxCapMoveValueScore > captureAlpha) {
-                                captureAlpha = maxCapMoveValueScore;
-                            }
-                            if (maxCapMoveValueScore >= captureBeta) {
-                                break;
-                            }
-                        }
-                        else {
-                            break;
-                        }
-                    }
-
-                }
-                currentState.placeMarble(bestCapMove,true);
-            }
-            currentBoardScore += currentState.EvaluateBoard(isWhitePlayer);
-            //Check if has time to go deeper
-            if (timeIsUp <= DateTime.Now || depth>=maxDepth) {
-                return currentBoardScore;
-            }
-
-            //Go deeper
-            int maxScore = int.MinValue;
-            foreach (string move in currentState.freeHexes)
-            {
-                if (timeIsUp > DateTime.Now)
-                {
-                    int moveValue = -NegaMaxScore(!isWhitePlayer, new GameState(currentState), move, depth+1, maxDepth,-beta, -alpha);
-                    if (moveValue > maxScore)
-                    {
-                        maxScore = moveValue;
-                    }
-                    if (maxScore > alpha) {
-                        alpha = maxScore;
-                    }
-                    if (maxScore >= beta) {
-                        break;
-                    }
-                }
-                else {
-                    break;
-                }
-            }
-            maxScore -= currentBoardScore;
-
-            return maxScore;
         }
 
     }
