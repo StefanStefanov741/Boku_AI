@@ -571,7 +571,7 @@ namespace Boku_AI
         public int EvaluateBoard(bool isWhitePlayer)
         {
             //Get current board scores
-            Thread.Sleep(10);
+            //Thread.Sleep(10);
             int score = 0;
             if (isWhitePlayer)
             {
