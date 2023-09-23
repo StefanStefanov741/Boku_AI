@@ -28,17 +28,12 @@ namespace Boku_AI
         private List<List<string>> whiteMarblesHistory = new List<List<string>>();
         private List<List<string>> blackMarblesHistory = new List<List<string>>();
         private List<string> takenLastRoundHistory = new List<string>();
-        private List<int> blackScoreHistory = new List<int>();
-        private List<int> whiteScoreHistory = new List<int>();
 
         private char[] boardLetters = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J' };
 
         List<HexagonalButton> canBeTaken = new List<HexagonalButton>();
         public List<string> canBeTakenTags = new List<string>();
         public string takenLastRound = "";
-
-        public int blackScore = 0;
-        public int whiteScore = 0;
 
         public GameState(List<HexagonalButton> startingGrid, bool player1turn = true)
         {
@@ -66,11 +61,7 @@ namespace Boku_AI
             this.takenLastRoundHistory = new List<string>(gsToCopy.takenLastRoundHistory);
             this.canBeTaken = new List<HexagonalButton>(gsToCopy.canBeTaken);
             this.canBeTakenTags = new List<string>(gsToCopy.canBeTakenTags);
-            this.whiteScoreHistory = new List<int>(gsToCopy.whiteScoreHistory);
-            this.blackScoreHistory = new List<int>(gsToCopy.blackScoreHistory);
             this.takenLastRound = gsToCopy.takenLastRound;
-            this.whiteScore = gsToCopy.whiteScore;
-            this.blackScore = gsToCopy.blackScore;
         }
 
         private void CorrectBoard()
@@ -114,8 +105,6 @@ namespace Boku_AI
                         whiteMarblesHistory.Add(new List<string>(whiteMarbles));
                         blackMarblesHistory.Add(new List<string>(blackMarbles));
                         takenLastRoundHistory.Add(takenLastRound);
-                        whiteScoreHistory.Add(whiteScore);
-                        blackScoreHistory.Add(blackScore);
                         btnToPlace.PlaceMarble(!isPlayer1Turn);
                     }
                     freeHexes.Remove(hex_pos);
@@ -133,10 +122,7 @@ namespace Boku_AI
                         blackMarblesHistory.RemoveAt(0);
                         takenLastRoundHistory.RemoveAt(0);
                         freeHexesHistory.RemoveAt(0);
-                        whiteScoreHistory.RemoveAt(0);
-                        blackScoreHistory.RemoveAt(0);
                     }
-                    CalcPlaceScore(hex_pos,!isPlayer1Turn);
                     return true;
                 }
                 else
@@ -168,7 +154,6 @@ namespace Boku_AI
                     }
                     canBeTaken.Clear();
                     canBeTakenTags.Clear();
-                    CalcCaptureScore(hex_pos, isPlayer1Turn);
                 }
 
                 if (canBeTaken.Count == 0)
@@ -186,13 +171,9 @@ namespace Boku_AI
                 whiteMarbles = whiteMarblesHistory.Last();
                 blackMarbles = blackMarblesHistory.Last();
                 freeHexes = freeHexesHistory.Last();
-                whiteScore = whiteScoreHistory.Last();
-                blackScore = blackScoreHistory.Last();
                 whiteMarblesHistory.RemoveAt(whiteMarblesHistory.Count - 1);
                 blackMarblesHistory.RemoveAt(blackMarblesHistory.Count - 1);
                 freeHexesHistory.RemoveAt(freeHexesHistory.Count - 1);
-                whiteScoreHistory.RemoveAt(blackScoreHistory.Count - 1);
-                blackScoreHistory.RemoveAt(blackScoreHistory.Count - 1);
                 CorrectBoard();
                 if (canBeTaken.Count > 0)
                 {
@@ -215,371 +196,200 @@ namespace Boku_AI
             }
         }
 
-        private void CalcCaptureScore(string lastPlaced, bool isWhitePlayer) { 
-        
-        }
-        private void CalcPlaceScore(string lastPlaced, bool isWhitePlayer) {
+        public int EvaluateBoard(bool isWhitePlayer)
+        {
             //Evaluate board score
-            char letter = lastPlaced.ElementAt(0);
-            int number = int.Parse(lastPlaced.Substring(1));
-            int indexOfLetter = Array.IndexOf(boardLetters, letter);
+            int score = 0;
+            /*
+            List<string> myMarbles;
+            List<string> enemyMarbles;
             List<string> evaluatedLine1 = new List<string>();
             List<string> evaluatedLine2 = new List<string>();
             List<string> evaluatedLine3 = new List<string>();
             if (isWhitePlayer)
             {
-                foreach (string mrbl in whiteMarbles)
-                {
-                    //Same letter, different number
-                    if (!evaluatedLine1.Contains(mrbl))
-                    {
-                        evaluatedLine1.Add(mrbl);
-                        int numberCopy = number;
-                        int count = 1;
-                        int startPos = number;
-                        int endPos = number;
-
-                        while (numberCopy < 10)
-                        {
-                            if (whiteMarbles.Contains(letter.ToString() + (numberCopy + 1).ToString()))
-                            {
-                                evaluatedLine1.Add(letter.ToString() + (numberCopy + 1).ToString());
-                                count++;
-                                endPos = (numberCopy + 1);
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            numberCopy++;
-                        }
-                        numberCopy = number;
-                        while (numberCopy > 1)
-                        {
-                            if (whiteMarbles.Contains(letter.ToString() + (numberCopy - 1).ToString()))
-                            {
-                                evaluatedLine1.Add(letter.ToString() + (numberCopy - 1).ToString());
-                                startPos = (numberCopy - 1);
-                                count++;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            numberCopy--;
-                        }
-                        if (count == 3)
-                        {
-                            whiteScore += 800;
-                        }
-                        else if (count == 4)
-                        {
-                            whiteScore += 600;
-                        }
-                        else if (count == 2 && (blackMarbles.Contains(letter + (startPos - 1).ToString()) || blackMarbles.Contains(letter + (endPos + 1).ToString())))
-                        {
-                            whiteScore -= 400;
-                        }
-                    }
-                    //Same number, different letter
-                    if (!evaluatedLine2.Contains(mrbl))
-                    {
-                        evaluatedLine2.Add(mrbl);
-                        int indexOfLetterCopy = indexOfLetter;
-                        int count = 1;
-                        int startPos = indexOfLetterCopy;
-                        int endPos = indexOfLetterCopy;
-
-                        while (indexOfLetterCopy < 9)
-                        {
-                            if (whiteMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString()))
-                            {
-                                evaluatedLine1.Add(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString());
-                                count++;
-                                endPos = (indexOfLetterCopy + 1);
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            indexOfLetterCopy++;
-                        }
-                        indexOfLetterCopy = indexOfLetter;
-                        while (indexOfLetterCopy > 0)
-                        {
-                            if (whiteMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString()))
-                            {
-                                evaluatedLine1.Add(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString());
-                                startPos = (indexOfLetterCopy - 1);
-                                count++;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            indexOfLetterCopy--;
-                        }
-                        if (count == 3)
-                        {
-                            whiteScore += 800;
-                        }
-                        else if (count == 4)
-                        {
-                            whiteScore += 600;
-                        }
-                        else if (count == 2 && ((startPos - 1 >= 0 && blackMarbles.Contains(boardLetters[startPos - 1].ToString() + number.ToString())) || (endPos + 1 <= 9 && blackMarbles.Contains(boardLetters[endPos + 1].ToString() + number.ToString()))))
-                        {
-                            whiteScore -= 400;
-                        }
-                    }
-                    //Incrementing number and letter
-                    if (!evaluatedLine3.Contains(mrbl))
-                    {
-                        evaluatedLine3.Add(mrbl);
-                        int numberCopy = number;
-                        int indexOfLetterCopy = indexOfLetter;
-                        int count = 1;
-                        int startPosLetter = indexOfLetterCopy;
-                        int startPosNumber = numberCopy;
-                        int endPosLetter = indexOfLetterCopy;
-                        int endPosNumber = numberCopy;
-                        while (numberCopy < 10 && indexOfLetterCopy < 9)
-                        {
-                            if (whiteMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + (numberCopy + 1).ToString()))
-                            {
-                                count++;
-                                endPosNumber = numberCopy;
-                                endPosLetter = indexOfLetterCopy;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            numberCopy++;
-                            indexOfLetterCopy++;
-                        }
-                        numberCopy = number;
-                        indexOfLetterCopy = indexOfLetter;
-                        while (numberCopy > 0 && indexOfLetterCopy > 0)
-                        {
-                            if (whiteMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + (numberCopy - 1).ToString()))
-                            {
-                                count++;
-                                startPosNumber = numberCopy;
-                                startPosLetter = indexOfLetterCopy;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            numberCopy--;
-                            indexOfLetterCopy--;
-                        }
-                        if (count == 3)
-                        {
-                            whiteScore += 800;
-                        }
-                        else if (count == 4)
-                        {
-                            whiteScore += 600;
-                        }
-                        else if (count == 2)
-                        {
-                            if ((startPosLetter - 1 >= 0 && blackMarbles.Contains(boardLetters[startPosLetter - 1].ToString() + startPosNumber.ToString())) || (endPosLetter + 1 <= 9 && blackMarbles.Contains(boardLetters[endPosLetter + 1].ToString() + endPosNumber.ToString())))
-                            {
-                                whiteScore -= 400;
-                            }
-                            else {
-                                whiteScore += 400;
-                            }
-                        }
-                    }
-                }
+                myMarbles = new List<string>(whiteMarbles);
+                enemyMarbles = new List<string>(blackMarbles);
             }
-            else {
-                foreach (string mrbl in blackMarbles)
-                {
-                    //Same letter, different number
-                    if (!evaluatedLine1.Contains(mrbl))
-                    {
-                        evaluatedLine1.Add(mrbl);
-                        int numberCopy = number;
-                        int count = 1;
-                        int startPos = number;
-                        int endPos = number;
-
-                        while (numberCopy < 10)
-                        {
-                            if (blackMarbles.Contains(letter.ToString() + (numberCopy + 1).ToString()))
-                            {
-                                evaluatedLine1.Add(letter.ToString() + (numberCopy + 1).ToString());
-                                count++;
-                                endPos = (numberCopy + 1);
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            numberCopy++;
-                        }
-                        numberCopy = number;
-                        while (numberCopy > 1)
-                        {
-                            if (blackMarbles.Contains(letter.ToString() + (numberCopy - 1).ToString()))
-                            {
-                                evaluatedLine1.Add(letter.ToString() + (numberCopy - 1).ToString());
-                                startPos = (numberCopy - 1);
-                                count++;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            numberCopy--;
-                        }
-                        if (count == 3)
-                        {
-                            blackScore += 800;
-                        }
-                        else if (count == 4)
-                        {
-                            blackScore += 600;
-                        }
-                        else if (count == 2 && (whiteMarbles.Contains(letter + (startPos - 1).ToString()) || whiteMarbles.Contains(letter + (endPos + 1).ToString())))
-                        {
-                            blackScore -= 400;
-                        }
-                    }
-                    //Same number, different letter
-                    if (!evaluatedLine2.Contains(mrbl))
-                    {
-                        evaluatedLine2.Add(mrbl);
-                        int indexOfLetterCopy = indexOfLetter;
-                        int count = 1;
-                        int startPos = indexOfLetterCopy;
-                        int endPos = indexOfLetterCopy;
-
-                        while (indexOfLetterCopy < 9)
-                        {
-                            if (blackMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString()))
-                            {
-                                evaluatedLine1.Add(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString());
-                                count++;
-                                endPos = (indexOfLetterCopy + 1);
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            indexOfLetterCopy++;
-                        }
-                        indexOfLetterCopy = indexOfLetter;
-                        while (indexOfLetterCopy > 0)
-                        {
-                            if (blackMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString()))
-                            {
-                                evaluatedLine1.Add(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString());
-                                startPos = (indexOfLetterCopy - 1);
-                                count++;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            indexOfLetterCopy--;
-                        }
-                        if (count == 3)
-                        {
-                            blackScore += 800;
-                        }
-                        else if (count == 4)
-                        {
-                            blackScore += 600;
-                        }
-                        else if (count == 2 && ((startPos - 1 >= 0 && whiteMarbles.Contains(boardLetters[startPos - 1].ToString() + number.ToString())) || (endPos + 1 <= 9 && whiteMarbles.Contains(boardLetters[endPos + 1].ToString() + number.ToString()))))
-                        {
-                            blackScore -= 400;
-                        }
-                    }
-                    //Incrementing number and letter
-                    if (!evaluatedLine3.Contains(mrbl))
-                    {
-                        evaluatedLine3.Add(mrbl);
-                        int numberCopy = number;
-                        int indexOfLetterCopy = indexOfLetter;
-                        int count = 1;
-                        int startPosLetter = indexOfLetterCopy;
-                        int startPosNumber = numberCopy;
-                        int endPosLetter = indexOfLetterCopy;
-                        int endPosNumber = numberCopy;
-                        while (numberCopy < 10 && indexOfLetterCopy < 9)
-                        {
-                            if (blackMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + (numberCopy + 1).ToString()))
-                            {
-                                count++;
-                                endPosNumber = numberCopy;
-                                endPosLetter = indexOfLetterCopy;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            numberCopy++;
-                            indexOfLetterCopy++;
-                        }
-                        numberCopy = number;
-                        indexOfLetterCopy = indexOfLetter;
-                        while (numberCopy > 0 && indexOfLetterCopy > 0)
-                        {
-                            if (blackMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + (numberCopy - 1).ToString()))
-                            {
-                                count++;
-                                startPosNumber = numberCopy;
-                                startPosLetter = indexOfLetterCopy;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                            numberCopy--;
-                            indexOfLetterCopy--;
-                        }
-                        if (count == 3)
-                        {
-                            blackScore += 800;
-                        }
-                        else if (count == 4)
-                        {
-                            blackScore += 600;
-                        }
-                        else if (count == 2)
-                        {
-                            if ((startPosLetter - 1 >= 0 && whiteMarbles.Contains(boardLetters[startPosLetter - 1].ToString() + startPosNumber.ToString())) || (endPosLetter + 1 <= 9 && whiteMarbles.Contains(boardLetters[endPosLetter + 1].ToString() + endPosNumber.ToString())))
-                            {
-                                blackScore -= 400;
-                            }
-                            else {
-                                blackScore += 400;
-                            }
-                                
-                        }
-                    }
-                }
-            }
-        }
-
-        public int EvaluateBoard(bool isWhitePlayer)
-        {
-            //Get current board scores
-            //Thread.Sleep(10);
-            int score = 0;
-            if (isWhitePlayer)
+            else
             {
-                score += whiteScore;
+                myMarbles = new List<string>(blackMarbles);
+                enemyMarbles = new List<string>(whiteMarbles);
             }
-            else {
-                score += blackScore;
+
+            foreach (string mrbl in myMarbles)
+            {
+                char letter = mrbl.ElementAt(0);
+                int number = int.Parse(mrbl.Substring(1));
+                int indexOfLetter = Array.IndexOf(boardLetters, letter);
+                //Same letter, different number
+                if (!evaluatedLine1.Contains(mrbl))
+                {
+                    evaluatedLine1.Add(mrbl);
+                    int numberCopy = number;
+                    int count = 1;
+                    int startPos = number;
+                    int endPos = number;
+
+                    while (numberCopy < 10)
+                    {
+                        if (myMarbles.Contains(letter.ToString() + (numberCopy + 1).ToString()))
+                        {
+                            evaluatedLine1.Add(letter.ToString() + (numberCopy + 1).ToString());
+                            count++;
+                            endPos = (numberCopy + 1);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                        numberCopy++;
+                    }
+                    numberCopy = number;
+                    while (numberCopy > 1)
+                    {
+                        if (myMarbles.Contains(letter.ToString() + (numberCopy - 1).ToString()))
+                        {
+                            evaluatedLine1.Add(letter.ToString() + (numberCopy - 1).ToString());
+                            startPos = (numberCopy - 1);
+                            count++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                        numberCopy--;
+                    }
+                    if (count == 3)
+                    {
+                        score += 800;
+                    }
+                    else if (count == 4)
+                    {
+                        score += 600;
+                    }
+                    else if (count == 2 && (enemyMarbles.Contains(letter + (startPos - 1).ToString()) || enemyMarbles.Contains(letter + (endPos + 1).ToString())))
+                    {
+                        score -= 400;
+                    }
+                }
+                //Same number, different letter
+                if (!evaluatedLine2.Contains(mrbl))
+                {
+                    evaluatedLine2.Add(mrbl);
+                    int indexOfLetterCopy = indexOfLetter;
+                    int count = 1;
+                    int startPos = indexOfLetterCopy;
+                    int endPos = indexOfLetterCopy;
+
+                    while (indexOfLetterCopy < 9)
+                    {
+                        if (myMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString()))
+                        {
+                            evaluatedLine1.Add(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString());
+                            count++;
+                            endPos = (indexOfLetterCopy + 1);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                        indexOfLetterCopy++;
+                    }
+                    indexOfLetterCopy = indexOfLetter;
+                    while (indexOfLetterCopy > 0)
+                    {
+                        if (myMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString()))
+                        {
+                            evaluatedLine1.Add(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString());
+                            startPos = (indexOfLetterCopy - 1);
+                            count++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                        indexOfLetterCopy--;
+                    }
+                    if (count == 3)
+                    {
+                        score += 800;
+                    }
+                    else if (count == 4)
+                    {
+                        score += 600;
+                    }
+                    else if (count == 2 && ((startPos - 1 >= 0 && enemyMarbles.Contains(boardLetters[startPos - 1].ToString() + number.ToString())) || (endPos + 1 <= 9 && enemyMarbles.Contains(boardLetters[endPos + 1].ToString() + number.ToString()))))
+                    {
+                        score -= 400;
+                    }
+                }
+                //Incrementing number and letter
+                if (!evaluatedLine3.Contains(mrbl))
+                {
+                    evaluatedLine3.Add(mrbl);
+                    int numberCopy = number;
+                    int indexOfLetterCopy = indexOfLetter;
+                    int count = 1;
+                    int startPosLetter = indexOfLetterCopy;
+                    int startPosNumber = numberCopy;
+                    int endPosLetter = indexOfLetterCopy;
+                    int endPosNumber = numberCopy;
+                    while (numberCopy < 10 && indexOfLetterCopy < 9)
+                    {
+                        if (myMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + (numberCopy + 1).ToString()))
+                        {
+                            count++;
+                            endPosNumber = numberCopy;
+                            endPosLetter = indexOfLetterCopy;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                        numberCopy++;
+                        indexOfLetterCopy++;
+                    }
+                    numberCopy = number;
+                    indexOfLetterCopy = indexOfLetter;
+                    while (numberCopy > 0 && indexOfLetterCopy > 0)
+                    {
+                        if (myMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + (numberCopy - 1).ToString()))
+                        {
+                            count++;
+                            startPosNumber = numberCopy;
+                            startPosLetter = indexOfLetterCopy;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                        numberCopy--;
+                        indexOfLetterCopy--;
+                    }
+                    if (count == 3)
+                    {
+                        score += 800;
+                    }
+                    else if (count == 4)
+                    {
+                        score += 600;
+                    }
+                    else if (count == 2)
+                    {
+                        if ((startPosLetter - 1 >= 0 && enemyMarbles.Contains(boardLetters[startPosLetter - 1].ToString() + startPosNumber.ToString())) || (endPosLetter + 1 <= 9 && enemyMarbles.Contains(boardLetters[endPosLetter + 1].ToString() + endPosNumber.ToString())))
+                        {
+                            score -= 400;
+                        }
+                        else
+                        {
+                            score += 400;
+                        }
+                    }
+                }
             }
+            */
+            //Get player's current board score
             score += new Random().Next(-100,100);
             return score;
         }
