@@ -19,7 +19,6 @@ namespace Boku_AI
         private int minValue = -999999999;
         private int maxValue = 999999999;
         private int winValue = 10000000;
-        private int capValue = 1000;
 
         public BokuBot(bool isPl1, int move_time = 5)
         {
@@ -69,6 +68,9 @@ namespace Boku_AI
                             bestMove.move = currentDepthMove.move;
                         }
                     }
+                }
+                else {
+                    break;
                 }
             }
             return bestMove.move;
@@ -181,6 +183,7 @@ namespace Boku_AI
                         //Go Deeper
                         MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha);
                         int nextScore = -nextValue.score;
+                        nextScore += currentState.EvaluateBoard(isWhitePlayer);
                         if (nextScore > bestMove.score)
                         {
                             bestMove.score = nextScore;
@@ -199,9 +202,9 @@ namespace Boku_AI
                     {
                         //Evaluate so far
                         int currentBoardScore = currentState.EvaluateBoard(isWhitePlayer);
-                        if ((currentBoardScore - depth * 300) > bestMove.score)
+                        if ((currentBoardScore + depth * 300) > bestMove.score)
                         {
-                            bestMove.score = currentBoardScore - depth * 300;
+                            bestMove.score = currentBoardScore + depth * 300;
                             if (bestMove.score < 0)
                             {
                                 bestMove.score = 0;

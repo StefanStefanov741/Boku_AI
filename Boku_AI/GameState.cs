@@ -35,6 +35,15 @@ namespace Boku_AI
         public List<string> canBeTakenTags = new List<string>();
         public string takenLastRound = "";
 
+        //Weights
+        static int line2 = 400;
+        static int line4 = 600;
+        static int line3 = 800;
+        static int stopLine1 = 50;
+        static int stopLine2 = 300;
+        static int stopLine3 = 5000;
+        static int stopLine4 = 8000;
+
         public GameState(List<HexagonalButton> startingGrid, bool player1turn = true)
         {
             if (startingGrid == null)
@@ -200,7 +209,7 @@ namespace Boku_AI
         {
             //Evaluate board score
             int score = 0;
-            /*
+            
             List<string> myMarbles;
             List<string> enemyMarbles;
             List<string> evaluatedLine1 = new List<string>();
@@ -241,6 +250,32 @@ namespace Boku_AI
                         }
                         else
                         {
+                            //Check if it messes with the enemy line
+                            if (enemyMarbles.Contains(letter.ToString() + (numberCopy + 1).ToString())){
+                                //Check for block 2
+                                if ((numberCopy + 2<=10) && enemyMarbles.Contains(letter.ToString() + (numberCopy + 2).ToString()))
+                                {
+                                    //Check for block 3
+                                    if ((numberCopy + 3 <= 10) && enemyMarbles.Contains(letter.ToString() + (numberCopy + 3).ToString()))
+                                    {
+                                        //Check for block 4
+                                        if ((numberCopy + 4 <= 10) && enemyMarbles.Contains(letter.ToString() + (numberCopy + 4).ToString()))
+                                        {
+                                            score += stopLine4;
+                                        }
+                                        else
+                                        {
+                                            score += stopLine3;
+                                        }
+                                    }
+                                    else {
+                                        score += stopLine2;
+                                    }
+                                }
+                                else {
+                                    score += stopLine1;
+                                }
+                            }
                             break;
                         }
                         numberCopy++;
@@ -256,21 +291,57 @@ namespace Boku_AI
                         }
                         else
                         {
+                            //Check if it messes with the enemy line
+                            if (enemyMarbles.Contains(letter.ToString() + (numberCopy - 1).ToString()))
+                            {
+                                //Check for block 2
+                                if ((numberCopy - 2 >= 1) && enemyMarbles.Contains(letter.ToString() + (numberCopy - 2).ToString()))
+                                {
+                                    //Check for block 3
+                                    if ((numberCopy - 3 >= 1) && enemyMarbles.Contains(letter.ToString() + (numberCopy - 3).ToString()))
+                                    {
+                                        //Check for block 4
+                                        if ((numberCopy - 4 >= 1) && enemyMarbles.Contains(letter.ToString() + (numberCopy - 4).ToString()))
+                                        {
+                                            score += stopLine4;
+                                        }
+                                        else
+                                        {
+                                            score += stopLine3;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        score += stopLine2;
+                                    }
+                                }
+                                else
+                                {
+                                    score += stopLine1;
+                                }
+                            }
                             break;
                         }
                         numberCopy--;
                     }
                     if (count == 3)
                     {
-                        score += 800;
+                        score += line3;
                     }
                     else if (count == 4)
                     {
-                        score += 600;
+                        score += line4;
                     }
-                    else if (count == 2 && (enemyMarbles.Contains(letter + (startPos - 1).ToString()) || enemyMarbles.Contains(letter + (endPos + 1).ToString())))
+                    else if (count == 2)
                     {
-                        score -= 400;
+                        if (enemyMarbles.Contains(letter + (startPos - 1).ToString()) || enemyMarbles.Contains(letter + (endPos + 1).ToString()))
+                        {
+                            score -= line2;
+                        }
+                        else
+                        {
+                            score += line2;
+                        }
                     }
                 }
                 //Same number, different letter
@@ -292,6 +363,34 @@ namespace Boku_AI
                         }
                         else
                         {
+                            if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString()))
+                            {
+                                //Check for block 2
+                                if ((indexOfLetterCopy + 2 <= 9) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 2].ToString() + number.ToString()))
+                                {
+                                    //Check for block 3
+                                    if ((indexOfLetterCopy + 3 <= 9) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 3].ToString() + number.ToString()))
+                                    {
+                                        //Check for block 4
+                                        if ((indexOfLetterCopy + 4 <= 9) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 4].ToString() + number.ToString()))
+                                        {
+                                            score += stopLine4;
+                                        }
+                                        else
+                                        {
+                                            score += stopLine3;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        score += stopLine2;
+                                    }
+                                }
+                                else
+                                {
+                                    score += stopLine1;
+                                }
+                            }
                             break;
                         }
                         indexOfLetterCopy++;
@@ -307,21 +406,55 @@ namespace Boku_AI
                         }
                         else
                         {
+                            if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString()))
+                            {
+                                //Check for block 2
+                                if ((indexOfLetterCopy - 2 >= 0) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 2].ToString() + number.ToString()))
+                                {
+                                    //Check for block 3
+                                    if ((indexOfLetterCopy - 3 >= 0) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 3].ToString() + number.ToString()))
+                                    {
+                                        //Check for block 4
+                                        if ((indexOfLetterCopy - 4 >= 0) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 4].ToString() + number.ToString()))
+                                        {
+                                            score += stopLine4;
+                                        }
+                                        else
+                                        {
+                                            score += stopLine3;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        score += stopLine2;
+                                    }
+                                }
+                                else
+                                {
+                                    score += stopLine1;
+                                }
+                            }
                             break;
                         }
                         indexOfLetterCopy--;
                     }
                     if (count == 3)
                     {
-                        score += 800;
+                        score += line3;
                     }
                     else if (count == 4)
                     {
-                        score += 600;
+                        score += line4;
                     }
-                    else if (count == 2 && ((startPos - 1 >= 0 && enemyMarbles.Contains(boardLetters[startPos - 1].ToString() + number.ToString())) || (endPos + 1 <= 9 && enemyMarbles.Contains(boardLetters[endPos + 1].ToString() + number.ToString()))))
+                    else if (count == 2)
                     {
-                        score -= 400;
+                        if ((startPos - 1 >= 0 && enemyMarbles.Contains(boardLetters[startPos - 1].ToString() + number.ToString())) || (endPos + 1 <= 9 && enemyMarbles.Contains(boardLetters[endPos + 1].ToString() + number.ToString())))
+                        {
+                            score -= line2;
+                        }
+                        else {
+                            score += line2;
+                        }
                     }
                 }
                 //Incrementing number and letter
@@ -345,6 +478,34 @@ namespace Boku_AI
                         }
                         else
                         {
+                            if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + (numberCopy + 1).ToString()))
+                            {
+                                //Check for block 2
+                                if ((indexOfLetterCopy + 2 <= 9) && numberCopy+2<=10 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 2].ToString() + (numberCopy + 2).ToString()))
+                                {
+                                    //Check for block 3
+                                    if ((indexOfLetterCopy + 3 <= 9) && numberCopy + 3 <= 10 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 3].ToString() + (numberCopy + 3).ToString()))
+                                    {
+                                        //Check for block 4
+                                        if ((indexOfLetterCopy + 4 <= 9) && numberCopy + 4 <= 10 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 4].ToString() + (numberCopy + 4).ToString()))
+                                        {
+                                            score += stopLine4;
+                                        }
+                                        else
+                                        {
+                                            score += stopLine3;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        score += stopLine2;
+                                    }
+                                }
+                                else
+                                {
+                                    score += stopLine1;
+                                }
+                            }
                             break;
                         }
                         numberCopy++;
@@ -362,6 +523,34 @@ namespace Boku_AI
                         }
                         else
                         {
+                            if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + (numberCopy - 1).ToString()))
+                            {
+                                //Check for block 2
+                                if ((indexOfLetterCopy - 2 >= 0) && numberCopy - 2 >= 1 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 2].ToString() + (numberCopy - 2).ToString()))
+                                {
+                                    //Check for block 3
+                                    if ((indexOfLetterCopy - 3 >= 0) && numberCopy - 3 >= 1 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 3].ToString() + (numberCopy - 3).ToString()))
+                                    {
+                                        //Check for block 4
+                                        if ((indexOfLetterCopy - 4 >= 0) && numberCopy - 4 >= 1 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 4].ToString() + (numberCopy - 4).ToString()))
+                                        {
+                                            score += stopLine4;
+                                        }
+                                        else
+                                        {
+                                            score += stopLine3;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        score += stopLine2;
+                                    }
+                                }
+                                else
+                                {
+                                    score += stopLine1;
+                                }
+                            }
                             break;
                         }
                         numberCopy--;
@@ -369,26 +558,26 @@ namespace Boku_AI
                     }
                     if (count == 3)
                     {
-                        score += 800;
+                        score += line3;
                     }
                     else if (count == 4)
                     {
-                        score += 600;
+                        score += line4;
                     }
                     else if (count == 2)
                     {
                         if ((startPosLetter - 1 >= 0 && enemyMarbles.Contains(boardLetters[startPosLetter - 1].ToString() + startPosNumber.ToString())) || (endPosLetter + 1 <= 9 && enemyMarbles.Contains(boardLetters[endPosLetter + 1].ToString() + endPosNumber.ToString())))
                         {
-                            score -= 400;
+                            score -= line2;
                         }
                         else
                         {
-                            score += 400;
+                            score += line2;
                         }
                     }
                 }
             }
-            */
+
             //Get player's current board score
             score += new Random().Next(-100,100);
             return score;
