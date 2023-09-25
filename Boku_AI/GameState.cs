@@ -39,8 +39,8 @@ namespace Boku_AI
         static int line2 = 400;
         static int line4 = 600;
         static int line3 = 800;
-        static int stopLine1 = 50;
-        static int stopLine2 = 300;
+        static int stopLine1 = 100;
+        static int stopLine2 = 3000;
         static int stopLine3 = 5000;
         static int stopLine4 = 8000;
 
@@ -219,11 +219,13 @@ namespace Boku_AI
             {
                 myMarbles = new List<string>(whiteMarbles);
                 enemyMarbles = new List<string>(blackMarbles);
+                score += (whiteMarbles.Count() - blackMarbles.Count())*20;
             }
             else
             {
                 myMarbles = new List<string>(blackMarbles);
                 enemyMarbles = new List<string>(whiteMarbles);
+                score += ((blackMarbles.Count()+1) - whiteMarbles.Count()) * 20;
             }
 
             foreach (string mrbl in myMarbles)
@@ -577,7 +579,7 @@ namespace Boku_AI
                     }
                 }
             }
-
+            
             //Get player's current board score
             score += new Random().Next(-100,100);
             return score;
