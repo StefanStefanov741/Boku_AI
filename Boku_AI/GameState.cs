@@ -40,7 +40,7 @@ namespace Boku_AI
         static int line4 = 600;
         static int line3 = 800;
         static int stopLine1 = 100;
-        static int stopLine2 = 3000;
+        static int stopLine2 = 1000;
         static int stopLine3 = 5000;
         static int stopLine4 = 8000;
 
@@ -305,7 +305,7 @@ namespace Boku_AI
                                         //Check for block 4
                                         if ((numberCopy - 4 >= 1) && enemyMarbles.Contains(letter.ToString() + (numberCopy - 4).ToString()))
                                         {
-                                            score += stopLine4;
+                                             score += stopLine4;
                                         }
                                         else
                                         {
@@ -354,6 +354,7 @@ namespace Boku_AI
                     int count = 1;
                     int startPos = indexOfLetterCopy;
                     int endPos = indexOfLetterCopy;
+                    bool startedLine = false;
 
                     while (indexOfLetterCopy < 9)
                     {
@@ -362,9 +363,13 @@ namespace Boku_AI
                             evaluatedLine1.Add(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString());
                             count++;
                             endPos = (indexOfLetterCopy + 1);
+                            startedLine = true;
                         }
                         else
                         {
+                            if (startedLine) {
+                                break;
+                            }
                             if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString()))
                             {
                                 //Check for block 2

@@ -19,6 +19,7 @@ namespace Boku_AI
         private int minValue = -999999999;
         private int maxValue = 999999999;
         private int winValue = 10000000;
+        private int captureBonus = 8000;
 
         public BokuBot(bool isPl1, int move_time = 5)
         {
@@ -53,7 +54,7 @@ namespace Boku_AI
             {
                 if (timeIsUp > DateTime.Now)
                 {
-                    MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta, "InitialAt: "+maxDepth.ToString());
+                    MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta);
                     if (maxDepth == 2)
                     {
                         //At 1 deep the score could be really good for a bad position => always replace
@@ -76,7 +77,7 @@ namespace Boku_AI
             return bestMove.move;
         }
 
-        private MoveStruct NegaMaxScore(bool isWhitePlayer, GameState entryState, int depth, int alpha, int beta, string id)
+        private MoveStruct NegaMaxScore(bool isWhitePlayer, GameState entryState, int depth, int alpha, int beta)
         {
             MoveStruct bestMove = new MoveStruct();
             bestMove.score = minValue;
@@ -97,6 +98,7 @@ namespace Boku_AI
             }
             foreach (string move in iterationHexes)
             {
+                int currentBoardScore = 0;
                 GameState currentState = new GameState(entryState);
                 if (currentState.takenLastRound != move)
                 {
@@ -150,13 +152,13 @@ namespace Boku_AI
                         //Choose which one to capture
                         MoveStruct bestCapMove = new MoveStruct();
                         bestCapMove.move = currentState.canBeTakenTags.ElementAt(1);
-                        bestCapMove.score = minValue;/*
+                        bestCapMove.score = minValue;
                         int capAlpha = minValue;
                         int capBeta = maxValue;
                         foreach (string possibleCap in currentState.canBeTakenTags) {
                             GameState capState = new GameState(currentState);
                             capState.placeMarble(possibleCap, true);
-                            int capScore = -NegaMaxScore(!isWhitePlayer, capState, 1, -capBeta, -capAlpha, "FromCapture: " + depth.ToString()).score;
+                            int capScore = -NegaMaxScore(!isWhitePlayer, capState, 1, -capBeta, -capAlpha).score;
                             if (capScore > bestCapMove.score) {
                                 bestCapMove.score = capScore;
                                 bestCapMove.move = possibleCap;
@@ -169,8 +171,8 @@ namespace Boku_AI
                             {
                                 break;
                             }
-                        }*/
-
+                        }
+                        currentBoardScore += captureBonus;
                         currentState.placeMarble(bestCapMove.move, true);
 
                     }
@@ -184,11 +186,11 @@ namespace Boku_AI
                             int pause = 1;
                         }
                         //Go Deeper
-                        MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha, "Going deeper at: " + depth.ToString());
+                        MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha);
                         int nextScore = -nextValue.score;
-                        if (nextScore + currentState.EvaluateBoard(isWhitePlayer) > bestMove.score)
+                        if (nextScore + currentBoardScore +currentState.EvaluateBoard(isWhitePlayer) > bestMove.score)
                         {
-                            bestMove.score = nextScore + currentState.EvaluateBoard(isWhitePlayer);
+                            bestMove.score = nextScore + currentBoardScore + currentState.EvaluateBoard(isWhitePlayer);
                             bestMove.move = move;
                         }
                         if (nextScore > alpha)
@@ -203,7 +205,7 @@ namespace Boku_AI
                     else
                     {
                         //Evaluate so far
-                        int currentBoardScore = currentState.EvaluateBoard(isWhitePlayer);
+                        currentBoardScore += currentState.EvaluateBoard(isWhitePlayer);
                         if ((currentBoardScore + depth * 300) > bestMove.score)
                         {
                             bestMove.score = currentBoardScore + depth * 300;
