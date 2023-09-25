@@ -53,7 +53,7 @@ namespace Boku_AI
             {
                 if (timeIsUp > DateTime.Now)
                 {
-                    MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta);
+                    MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta, "InitialAt: "+maxDepth.ToString());
                     if (maxDepth == 2)
                     {
                         //At 1 deep the score could be really good for a bad position => always replace
@@ -76,7 +76,7 @@ namespace Boku_AI
             return bestMove.move;
         }
 
-        private MoveStruct NegaMaxScore(bool isWhitePlayer, GameState entryState, int depth, int alpha, int beta)
+        private MoveStruct NegaMaxScore(bool isWhitePlayer, GameState entryState, int depth, int alpha, int beta, string id)
         {
             MoveStruct bestMove = new MoveStruct();
             bestMove.score = minValue;
@@ -150,13 +150,13 @@ namespace Boku_AI
                         //Choose which one to capture
                         MoveStruct bestCapMove = new MoveStruct();
                         bestCapMove.move = currentState.canBeTakenTags.ElementAt(1);
-                        bestCapMove.score = minValue;
+                        bestCapMove.score = minValue;/*
                         int capAlpha = minValue;
                         int capBeta = maxValue;
                         foreach (string possibleCap in currentState.canBeTakenTags) {
                             GameState capState = new GameState(currentState);
                             capState.placeMarble(possibleCap, true);
-                            int capScore = -NegaMaxScore(!isWhitePlayer, capState, 1, -capBeta, -capAlpha).score;
+                            int capScore = -NegaMaxScore(!isWhitePlayer, capState, 1, -capBeta, -capAlpha, "FromCapture: " + depth.ToString()).score;
                             if (capScore > bestCapMove.score) {
                                 bestCapMove.score = capScore;
                                 bestCapMove.move = possibleCap;
@@ -169,7 +169,7 @@ namespace Boku_AI
                             {
                                 break;
                             }
-                        }
+                        }*/
 
                         currentState.placeMarble(bestCapMove.move, true);
 
@@ -180,20 +180,22 @@ namespace Boku_AI
                         if (timeIsUp < DateTime.Now) {
                             return bestMove;
                         }
+                        if (depth == 3 && move == "F5") {
+                            int pause = 1;
+                        }
                         //Go Deeper
-                        MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha);
+                        MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha, "Going deeper at: " + depth.ToString());
                         int nextScore = -nextValue.score;
-                        nextScore += currentState.EvaluateBoard(isWhitePlayer);
-                        if (nextScore > bestMove.score)
+                        if (nextScore + currentState.EvaluateBoard(isWhitePlayer) > bestMove.score)
                         {
-                            bestMove.score = nextScore;
+                            bestMove.score = nextScore + currentState.EvaluateBoard(isWhitePlayer);
                             bestMove.move = move;
                         }
-                        if (bestMove.score > alpha)
+                        if (nextScore > alpha)
                         {
-                            alpha = bestMove.score;
+                            alpha = nextScore;
                         }
-                        if (bestMove.score >= beta)
+                        if (nextScore >= beta)
                         {
                             break;
                         }
@@ -214,7 +216,6 @@ namespace Boku_AI
                     }
                 }
             }
-
             return bestMove;
         }
 

@@ -196,35 +196,35 @@ namespace Boku_AI
             }
             if (successfulMove)
             {
-                gameEnded = gameState.CheckGameEnded(buttonTag, isWhiteMarble);
-                switch (gameEnded)
-                {
-                    case 0:
-                        //Its a draw
-                        if (!gameState.CheckCapture(buttonTag, isWhiteMarble))
-                        {
-                            MessageBox.Show("It's a Draw!");
-                        }
-                        break;
-                    case 1:
-                        //White won
-                        MessageBox.Show("White Wins!");
-                        break;
-                    case 2:
-                        //Black won
-                        MessageBox.Show("Black Wins!");
-                        break;
-                    default:
-                        //Game hasn't eneded
-                        //Check for capture
-                        gameState.CheckCapture(buttonTag, isWhiteMarble);
-                        //Check for impossible move
-                        gameState.CheckImpossibleTurn();
-                        break;
+                if (!gameState.lastWasCapture) {
+                    gameEnded = gameState.CheckGameEnded(buttonTag, isWhiteMarble);
+                    switch (gameEnded)
+                    {
+                        case 0:
+                            //Its a draw
+                            if (!gameState.CheckCapture(buttonTag, isWhiteMarble))
+                            {
+                                MessageBox.Show("It's a Draw!");
+                            }
+                            break;
+                        case 1:
+                            //White won
+                            MessageBox.Show("White Wins!");
+                            break;
+                        case 2:
+                            //Black won
+                            MessageBox.Show("Black Wins!");
+                            break;
+                        default:
+                            //Game hasn't eneded
+                            //Check for capture
+                            gameState.CheckCapture(buttonTag, isWhiteMarble);
+                            //Check for impossible move
+                            gameState.CheckImpossibleTurn();
+                            break;
+                    }
                 }
-
                 Task.Run(() => makeBotMove());
-
             }
             else {
                 MessageBox.Show("Invalid Move! ("+buttonTag+")");
