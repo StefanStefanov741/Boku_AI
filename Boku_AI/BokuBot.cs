@@ -28,16 +28,9 @@ namespace Boku_AI
             this.timeIsUp = DateTime.Now.AddDays(10);
         }
 
-        struct MoveStruct
-        {
-            public int score;
-            public string move;
-        }
-
         public async Task<string> MakeMove(GameState state)
         {
-            MoveStruct bestMove = new MoveStruct();
-            bestMove.move = state.freeHexes.ElementAt(0);
+            MoveStruct bestMove = new MoveStruct(minValue, state.freeHexes.ElementAt(0));
             if (bestMove.move == state.takenLastRound)
             {
                 bestMove.move = state.freeHexes.ElementAt(1);
@@ -45,16 +38,33 @@ namespace Boku_AI
             timeIsUp = DateTime.Now.AddSeconds(moveTime);
 
             //Start NegaMax Search
-            bestMove.score = minValue;
             int alpha = minValue;
             int beta = maxValue;
+
+            List<MoveStruct> possibleMoves;
+            if (state.canBeTakenTags.Count == 0)
+            {
+                possibleMoves = new List<MoveStruct>();
+                foreach (string m in state.freeHexes)
+                {
+                    possibleMoves.Add(new MoveStruct(minValue, m));
+                }
+            }
+            else {
+                possibleMoves = null;
+            }
 
             //Start tree search
             for (int maxDepth = 1; maxDepth <= 81; maxDepth++)
             {
                 if (timeIsUp > DateTime.Now && bestMove.score<winValue-500)
                 {
-                    MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta);
+                    if (possibleMoves!=null && maxDepth > 1) {
+                        //Order moves if possible
+                        possibleMoves = possibleMoves.OrderByDescending(move => move.score).ToList();
+                    }
+                    //Go deeper
+                    MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta, possibleMoves);
                     if (maxDepth == 2)
                     {
                         //At 1 deep the score could be really good for a bad position => always replace
@@ -77,53 +87,69 @@ namespace Boku_AI
             return bestMove.move;
         }
 
-        private MoveStruct NegaMaxScore(bool isWhitePlayer, GameState entryState, int depth, int alpha, int beta)
+        private MoveStruct NegaMaxScore(bool isWhitePlayer, GameState entryState, int depth, int alpha, int beta, List<MoveStruct>movesList=null)
         {
-            MoveStruct bestMove = new MoveStruct();
-            bestMove.score = minValue;
+            MoveStruct bestMove = new MoveStruct(minValue,"");
+
             List<string> iterationHexes;
-            if (entryState.canBeTakenTags.Count == 0)
+            if (movesList != null)
             {
-                iterationHexes = new List<string>(entryState.freeHexes);
+                iterationHexes = new List<string>();
+                foreach (MoveStruct m in movesList)
+                {
+                    iterationHexes.Add(m.move);
+                }
                 bestMove.move = iterationHexes.ElementAt(0);
                 if (bestMove.move == entryState.takenLastRound)
                 {
                     bestMove.move = iterationHexes.ElementAt(1);
                 }
             }
-            else
-            {
-                iterationHexes = new List<string>(entryState.canBeTakenTags);
-                bestMove.move = entryState.canBeTakenTags.ElementAt(1);
+            else {
+                if (entryState.canBeTakenTags.Count == 0)
+                {
+                    iterationHexes = new List<string>(entryState.freeHexes);
+                    bestMove.move = iterationHexes.ElementAt(0);
+                    if (bestMove.move == entryState.takenLastRound)
+                    {
+                        bestMove.move = iterationHexes.ElementAt(1);
+                    }
+                }
+                else
+                {
+                    iterationHexes = new List<string>(entryState.canBeTakenTags);
+                    bestMove.move = entryState.canBeTakenTags.ElementAt(1);
+                }
             }
-            foreach (string move in iterationHexes)
+
+            for (int iterationIndex = 0; iterationIndex < iterationHexes.Count; iterationIndex++)
             {
                 int currentBoardScore = 0;
                 GameState currentState = new GameState(entryState);
-                if (currentState.takenLastRound != move)
+                if (currentState.takenLastRound != iterationHexes[iterationIndex])
                 {
                     //Apply move
-                    currentState.placeMarble(move, true);
+                    currentState.placeMarble(iterationHexes[iterationIndex], true);
                     //Check if game is over
-                    int gameEnded = currentState.CheckGameEnded(move, isWhitePlayer);
+                    int gameEnded = currentState.CheckGameEnded(iterationHexes[iterationIndex], isWhitePlayer);
                     switch (gameEnded)
                     {
                         case 0:
                             //Draw
-                            bestMove.move = move;
+                            bestMove.move = iterationHexes[iterationIndex];
                             bestMove.score = 0;
                             return bestMove;
                         case 1:
                             //White won
                             if (isWhitePlayer)
                             {
-                                bestMove.move = move;
+                                bestMove.move = iterationHexes[iterationIndex];
                                 bestMove.score = winValue + depth * 1000;
                                 return bestMove;
                             }
                             else
                             {
-                                bestMove.move = move;
+                                bestMove.move = iterationHexes[iterationIndex];
                                 bestMove.score = -(winValue + depth * 1000);
                                 return bestMove;
                             }
@@ -131,13 +157,13 @@ namespace Boku_AI
                             //Black won
                             if (!isWhitePlayer)
                             {
-                                bestMove.move = move;
+                                bestMove.move = iterationHexes[iterationIndex];
                                 bestMove.score = winValue + depth * 1000;
                                 return bestMove;
                             }
                             else
                             {
-                                bestMove.move = move;
+                                bestMove.move = iterationHexes[iterationIndex];
                                 bestMove.score = -(winValue + depth * 1000);
                                 return bestMove;
                             }
@@ -146,13 +172,11 @@ namespace Boku_AI
                     }
 
                     //Check if it captured during this move
-                    bool didCapture = currentState.CheckCapture(move, isWhitePlayer, true);
+                    bool didCapture = currentState.CheckCapture(iterationHexes[iterationIndex], isWhitePlayer, true);
                     if (didCapture)
                     {
                         //Choose which one to capture
-                        MoveStruct bestCapMove = new MoveStruct();
-                        bestCapMove.move = currentState.canBeTakenTags.ElementAt(1);
-                        bestCapMove.score = minValue;
+                        MoveStruct bestCapMove = new MoveStruct(minValue, currentState.canBeTakenTags.ElementAt(1));
                         int capAlpha = minValue;
                         int capBeta = maxValue;
                         foreach (string possibleCap in currentState.canBeTakenTags) {
@@ -177,10 +201,15 @@ namespace Boku_AI
                         //Go Deeper
                         MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha);
                         int nextScore = -nextValue.score;
-                        if (nextScore + currentBoardScore +currentState.EvaluateBoard(isWhitePlayer) > bestMove.score)
+                        int currentEvaluation = currentState.EvaluateBoard(isWhitePlayer);
+                        if (nextScore + currentBoardScore + currentEvaluation> bestMove.score)
                         {
-                            bestMove.score = nextScore + currentBoardScore + currentState.EvaluateBoard(isWhitePlayer);
-                            bestMove.move = move;
+                            bestMove.score = nextScore + currentBoardScore + currentEvaluation;
+                            bestMove.move = iterationHexes[iterationIndex];
+                        }
+                        if (movesList != null)
+                        {
+                            movesList.ElementAt(iterationIndex).score = nextScore +currentBoardScore + currentEvaluation;
                         }
                         if (nextScore > alpha)
                         {
@@ -202,7 +231,11 @@ namespace Boku_AI
                             {
                                 bestMove.score = 0;
                             }
-                            bestMove.move = move;
+                            bestMove.move = iterationHexes[iterationIndex];
+                        }
+                        if (movesList != null)
+                        {
+                            movesList.ElementAt(iterationIndex).score = currentBoardScore + depth * 300;
                         }
                     }
                 }
