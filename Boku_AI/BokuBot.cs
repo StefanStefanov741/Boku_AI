@@ -158,18 +158,10 @@ namespace Boku_AI
                         foreach (string possibleCap in currentState.canBeTakenTags) {
                             GameState capState = new GameState(currentState);
                             capState.placeMarble(possibleCap, true);
-                            int capScore = -NegaMaxScore(!isWhitePlayer, capState, 1, -capBeta, -capAlpha).score;
-                            if (capScore > bestCapMove.score) {
-                                bestCapMove.score = capScore;
+                            int capPoints = capState.EvaluateBoard(isWhitePlayer);
+                            if (capPoints > bestCapMove.score) {
+                                bestCapMove.score = capPoints;
                                 bestCapMove.move = possibleCap;
-                            }
-                            if (bestCapMove.score > alpha)
-                            {
-                                alpha = bestCapMove.score;
-                            }
-                            if (bestCapMove.score >= beta)
-                            {
-                                break;
                             }
                         }
                         currentBoardScore += captureBonus;
@@ -181,9 +173,6 @@ namespace Boku_AI
                     {
                         if (timeIsUp < DateTime.Now) {
                             return bestMove;
-                        }
-                        if (depth == 3 && move == "F5") {
-                            int pause = 1;
                         }
                         //Go Deeper
                         MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha);
