@@ -19,7 +19,7 @@ namespace Boku_AI
         private static int winValue = 10000000;
         private static int minValue = -winValue;
         private static int maxValue = winValue;
-        private static int captureBonus = 8000;
+        private static int captureBonus = 10000;
 
         public BokuBot(bool isPl1, int move_time = 5)
         {

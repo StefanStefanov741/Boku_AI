@@ -39,11 +39,12 @@ namespace Boku_AI
         //Weights
         static int line2 = 400;
         static int line4 = 600;
-        static int line3 = 800;
+        static int line3 = 2000;
         static int stopLine1 = 100;
         static int stopLine2 = 1000;
         static int stopLine3 = 5000;
         static int stopLine4 = 8000;
+        static int blockBonus = 500;
 
         public GameState(List<HexagonalButton> startingGrid, bool player1turn = true)
         {
@@ -240,6 +241,11 @@ namespace Boku_AI
                                 else
                                 {
                                     score += stopLine3;
+                                    //If it is a more ergent 3 in a line block add more points
+                                    if ((numberCopy + 4 <= 10) && !myMarbles.Contains(letter.ToString() + (numberCopy + 4).ToString())) {
+                                        //If on the other side there is also an empty space
+                                        score += blockBonus * 3;
+                                    }
                                 }
                             }
                             else
@@ -284,6 +290,12 @@ namespace Boku_AI
                                 else
                                 {
                                     score += stopLine3;
+                                    //If it is a more ergent 3 in a line block add more points
+                                    if ((numberCopy - 4 >= 1) && !myMarbles.Contains(letter.ToString() + (numberCopy - 4).ToString()))
+                                    {
+                                        //If on the other side there is also an empty space
+                                        score += blockBonus * 3;
+                                    }
                                 }
                             }
                             else
@@ -361,6 +373,12 @@ namespace Boku_AI
                                 else
                                 {
                                     score += stopLine3;
+                                    //If it is a more ergent 3 in a line block add more points
+                                    if ((indexOfLetterCopy + 4 <= 9) && !myMarbles.Contains(boardLetters[indexOfLetterCopy + 4].ToString() + number.ToString()))
+                                    {
+                                        //If on the other side there is also an empty space
+                                        score += blockBonus * 3;
+                                    }
                                 }
                             }
                             else
@@ -404,6 +422,12 @@ namespace Boku_AI
                                 else
                                 {
                                     score += stopLine3;
+                                    //If it is a more ergent 3 in a line block add more points
+                                    if ((indexOfLetterCopy - 4 >= 0) && !myMarbles.Contains(boardLetters[indexOfLetterCopy - 4].ToString() + number.ToString()))
+                                    {
+                                        //If on the other side there is also an empty space
+                                        score += blockBonus * 3;
+                                    }
                                 }
                             }
                             else
@@ -478,6 +502,12 @@ namespace Boku_AI
                                 else
                                 {
                                     score += stopLine3;
+                                    //If it is a more ergent 3 in a line block add more points
+                                    if ((indexOfLetterCopy + 4 <= 9) && numberCopy + 4 <= 10 && !myMarbles.Contains(boardLetters[indexOfLetterCopy + 4].ToString() + (numberCopy + 4).ToString()))
+                                    {
+                                        //If on the other side there is also an empty space
+                                        score += blockBonus * 3;
+                                    }
                                 }
                             }
                             else
@@ -524,6 +554,12 @@ namespace Boku_AI
                                 else
                                 {
                                     score += stopLine3;
+                                    //If it is a more ergent 3 in a line block add more points
+                                    if ((indexOfLetterCopy - 4 >= 0) && numberCopy - 4 >= 1 && !myMarbles.Contains(boardLetters[indexOfLetterCopy - 4].ToString() + (numberCopy - 4).ToString()))
+                                    {
+                                        //If on the other side there is also an empty space
+                                        score += blockBonus * 3;
+                                    }
                                 }
                             }
                             else
