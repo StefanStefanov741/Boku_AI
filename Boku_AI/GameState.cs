@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using static System.Formats.Asn1.AsnWriter;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 namespace Boku_AI
 {
@@ -205,6 +206,365 @@ namespace Boku_AI
             }
         }
 
+        private int EvaluateLine1(List<string> evaluatedLine1, List<string>myMarbles, List<string>enemyMarbles,string mrbl,int number, char letter) {
+            int score = 0;
+            evaluatedLine1.Add(mrbl);
+            int numberCopy = number;
+            int count = 1;
+            int startPos = number;
+            int endPos = number;
+
+            while (numberCopy < 10)
+            {
+                if (myMarbles.Contains(letter.ToString() + (numberCopy + 1).ToString()))
+                {
+                    evaluatedLine1.Add(letter.ToString() + (numberCopy + 1).ToString());
+                    count++;
+                    endPos = (numberCopy + 1);
+                }
+                else
+                {
+                    //Check if it messes with the enemy line
+                    if (enemyMarbles.Contains(letter.ToString() + (numberCopy + 1).ToString()))
+                    {
+                        //Check for block 2
+                        if ((numberCopy + 2 <= 10) && enemyMarbles.Contains(letter.ToString() + (numberCopy + 2).ToString()))
+                        {
+                            //Check for block 3
+                            if ((numberCopy + 3 <= 10) && enemyMarbles.Contains(letter.ToString() + (numberCopy + 3).ToString()))
+                            {
+                                //Check for block 4
+                                if ((numberCopy + 4 <= 10) && enemyMarbles.Contains(letter.ToString() + (numberCopy + 4).ToString()))
+                                {
+                                    score += stopLine4;
+                                }
+                                else
+                                {
+                                    score += stopLine3;
+                                }
+                            }
+                            else
+                            {
+                                score += stopLine2;
+                            }
+                        }
+                        else
+                        {
+                            score += stopLine1;
+                        }
+                    }
+                    break;
+                }
+                numberCopy++;
+            }
+            numberCopy = number;
+            while (numberCopy > 1)
+            {
+                if (myMarbles.Contains(letter.ToString() + (numberCopy - 1).ToString()))
+                {
+                    evaluatedLine1.Add(letter.ToString() + (numberCopy - 1).ToString());
+                    startPos = (numberCopy - 1);
+                    count++;
+                }
+                else
+                {
+                    //Check if it messes with the enemy line
+                    if (enemyMarbles.Contains(letter.ToString() + (numberCopy - 1).ToString()))
+                    {
+                        //Check for block 2
+                        if ((numberCopy - 2 >= 1) && enemyMarbles.Contains(letter.ToString() + (numberCopy - 2).ToString()))
+                        {
+                            //Check for block 3
+                            if ((numberCopy - 3 >= 1) && enemyMarbles.Contains(letter.ToString() + (numberCopy - 3).ToString()))
+                            {
+                                //Check for block 4
+                                if ((numberCopy - 4 >= 1) && enemyMarbles.Contains(letter.ToString() + (numberCopy - 4).ToString()))
+                                {
+                                    score += stopLine4;
+                                }
+                                else
+                                {
+                                    score += stopLine3;
+                                }
+                            }
+                            else
+                            {
+                                score += stopLine2;
+                            }
+                        }
+                        else
+                        {
+                            score += stopLine1;
+                        }
+                    }
+                    break;
+                }
+                numberCopy--;
+            }
+            if (count == 3)
+            {
+                score += line3;
+            }
+            else if (count == 4)
+            {
+                score += line4;
+            }
+            else if (count == 2)
+            {
+                if (enemyMarbles.Contains(letter + (startPos - 1).ToString()) || enemyMarbles.Contains(letter + (endPos + 1).ToString()))
+                {
+                    score -= line2;
+                }
+                else
+                {
+                    score += line2;
+                }
+            }
+            return score;
+        }
+        private int EvaluateLine2(List<string> evaluatedLine2, List<string> myMarbles, List<string> enemyMarbles, string mrbl, int number, int indexOfLetter)
+        {
+            int score = 0;
+            evaluatedLine2.Add(mrbl);
+            int indexOfLetterCopy = indexOfLetter;
+            int count = 1;
+            int startPos = indexOfLetterCopy;
+            int endPos = indexOfLetterCopy;
+            bool startedLine = false;
+
+            while (indexOfLetterCopy < 9)
+            {
+                if (myMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString()))
+                {
+                    evaluatedLine2.Add(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString());
+                    count++;
+                    endPos = (indexOfLetterCopy + 1);
+                    startedLine = true;
+                }
+                else
+                {
+                    if (startedLine)
+                    {
+                        break;
+                    }
+                    if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString()))
+                    {
+                        //Check for block 2
+                        if ((indexOfLetterCopy + 2 <= 9) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 2].ToString() + number.ToString()))
+                        {
+                            //Check for block 3
+                            if ((indexOfLetterCopy + 3 <= 9) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 3].ToString() + number.ToString()))
+                            {
+                                //Check for block 4
+                                if ((indexOfLetterCopy + 4 <= 9) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 4].ToString() + number.ToString()))
+                                {
+                                    score += stopLine4;
+                                }
+                                else
+                                {
+                                    score += stopLine3;
+                                }
+                            }
+                            else
+                            {
+                                score += stopLine2;
+                            }
+                        }
+                        else
+                        {
+                            score += stopLine1;
+                        }
+                    }
+                    break;
+                }
+                indexOfLetterCopy++;
+            }
+            indexOfLetterCopy = indexOfLetter;
+            while (indexOfLetterCopy > 0)
+            {
+                if (myMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString()))
+                {
+                    evaluatedLine2.Add(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString());
+                    startPos = (indexOfLetterCopy - 1);
+                    count++;
+                }
+                else
+                {
+                    if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString()))
+                    {
+                        //Check for block 2
+                        if ((indexOfLetterCopy - 2 >= 0) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 2].ToString() + number.ToString()))
+                        {
+                            //Check for block 3
+                            if ((indexOfLetterCopy - 3 >= 0) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 3].ToString() + number.ToString()))
+                            {
+                                //Check for block 4
+                                if ((indexOfLetterCopy - 4 >= 0) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 4].ToString() + number.ToString()))
+                                {
+                                    score += stopLine4;
+                                }
+                                else
+                                {
+                                    score += stopLine3;
+                                }
+                            }
+                            else
+                            {
+                                score += stopLine2;
+                            }
+                        }
+                        else
+                        {
+                            score += stopLine1;
+                        }
+                    }
+                    break;
+                }
+                indexOfLetterCopy--;
+            }
+            if (count == 3)
+            {
+                score += line3;
+            }
+            else if (count == 4)
+            {
+                score += line4;
+            }
+            else if (count == 2)
+            {
+                if ((startPos - 1 >= 0 && enemyMarbles.Contains(boardLetters[startPos - 1].ToString() + number.ToString())) || (endPos + 1 <= 9 && enemyMarbles.Contains(boardLetters[endPos + 1].ToString() + number.ToString())))
+                {
+                    score -= line2;
+                }
+                else
+                {
+                    score += line2;
+                }
+            }
+            return score;
+        }
+        private int EvaluateLine3(List<string> evaluatedLine3, List<string> myMarbles, List<string> enemyMarbles, string mrbl, int number, int indexOfLetter)
+        {
+            int score = 0;
+            evaluatedLine3.Add(mrbl);
+            int numberCopy = number;
+            int indexOfLetterCopy = indexOfLetter;
+            int count = 1;
+            int startPosLetter = indexOfLetterCopy;
+            int startPosNumber = numberCopy;
+            int endPosLetter = indexOfLetterCopy;
+            int endPosNumber = numberCopy;
+            while (numberCopy < 10 && indexOfLetterCopy < 9)
+            {
+                if (myMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + (numberCopy + 1).ToString()))
+                {
+                    evaluatedLine3.Add(boardLetters[indexOfLetterCopy + 1].ToString() + (numberCopy + 1).ToString());
+                    count++;
+                    endPosNumber = numberCopy;
+                    endPosLetter = indexOfLetterCopy;
+                }
+                else
+                {
+                    if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + (numberCopy + 1).ToString()))
+                    {
+                        //Check for block 2
+                        if ((indexOfLetterCopy + 2 <= 9) && numberCopy + 2 <= 10 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 2].ToString() + (numberCopy + 2).ToString()))
+                        {
+                            //Check for block 3
+                            if ((indexOfLetterCopy + 3 <= 9) && numberCopy + 3 <= 10 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 3].ToString() + (numberCopy + 3).ToString()))
+                            {
+                                //Check for block 4
+                                if ((indexOfLetterCopy + 4 <= 9) && numberCopy + 4 <= 10 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 4].ToString() + (numberCopy + 4).ToString()))
+                                {
+                                    score += stopLine4;
+                                }
+                                else
+                                {
+                                    score += stopLine3;
+                                }
+                            }
+                            else
+                            {
+                                score += stopLine2;
+                            }
+                        }
+                        else
+                        {
+                            score += stopLine1;
+                        }
+                    }
+                    break;
+                }
+                numberCopy++;
+                indexOfLetterCopy++;
+            }
+            numberCopy = number;
+            indexOfLetterCopy = indexOfLetter;
+            while (numberCopy > 0 && indexOfLetterCopy > 0)
+            {
+                if (myMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + (numberCopy - 1).ToString()))
+                {
+                    evaluatedLine3.Add(boardLetters[indexOfLetterCopy - 1].ToString() + (numberCopy - 1).ToString());
+                    count++;
+                    startPosNumber = numberCopy;
+                    startPosLetter = indexOfLetterCopy;
+                }
+                else
+                {
+                    if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + (numberCopy - 1).ToString()))
+                    {
+                        //Check for block 2
+                        if ((indexOfLetterCopy - 2 >= 0) && numberCopy - 2 >= 1 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 2].ToString() + (numberCopy - 2).ToString()))
+                        {
+                            //Check for block 3
+                            if ((indexOfLetterCopy - 3 >= 0) && numberCopy - 3 >= 1 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 3].ToString() + (numberCopy - 3).ToString()))
+                            {
+                                //Check for block 4
+                                if ((indexOfLetterCopy - 4 >= 0) && numberCopy - 4 >= 1 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 4].ToString() + (numberCopy - 4).ToString()))
+                                {
+                                    score += stopLine4;
+                                }
+                                else
+                                {
+                                    score += stopLine3;
+                                }
+                            }
+                            else
+                            {
+                                score += stopLine2;
+                            }
+                        }
+                        else
+                        {
+                            score += stopLine1;
+                        }
+                    }
+                    break;
+                }
+                numberCopy--;
+                indexOfLetterCopy--;
+            }
+            if (count == 3)
+            {
+                score += line3;
+            }
+            else if (count == 4)
+            {
+                score += line4;
+            }
+            else if (count == 2)
+            {
+                if ((startPosLetter - 1 >= 0 && enemyMarbles.Contains(boardLetters[startPosLetter - 1].ToString() + startPosNumber.ToString())) || (endPosLetter + 1 <= 9 && enemyMarbles.Contains(boardLetters[endPosLetter + 1].ToString() + endPosNumber.ToString())))
+                {
+                    score -= line2;
+                }
+                else
+                {
+                    score += line2;
+                }
+            }
+            return score;
+        }
         public int EvaluateBoard(bool isWhitePlayer)
         {
             //Evaluate board score
@@ -215,6 +575,8 @@ namespace Boku_AI
             List<string> evaluatedLine1 = new List<string>();
             List<string> evaluatedLine2 = new List<string>();
             List<string> evaluatedLine3 = new List<string>();
+            Task[] evaluationTasks = new Task[3];
+
             if (isWhitePlayer)
             {
                 myMarbles = new List<string>(whiteMarbles);
@@ -233,356 +595,38 @@ namespace Boku_AI
                 char letter = mrbl.ElementAt(0);
                 int number = int.Parse(mrbl.Substring(1));
                 int indexOfLetter = Array.IndexOf(boardLetters, letter);
+                int score1 = 0;
+                int score2 = 0;
+                int score3 = 0;
                 //Same letter, different number
                 if (!evaluatedLine1.Contains(mrbl))
                 {
-                    evaluatedLine1.Add(mrbl);
-                    int numberCopy = number;
-                    int count = 1;
-                    int startPos = number;
-                    int endPos = number;
-
-                    while (numberCopy < 10)
+                    evaluationTasks[0] = Task.Run(() =>
                     {
-                        if (myMarbles.Contains(letter.ToString() + (numberCopy + 1).ToString()))
-                        {
-                            evaluatedLine1.Add(letter.ToString() + (numberCopy + 1).ToString());
-                            count++;
-                            endPos = (numberCopy + 1);
-                        }
-                        else
-                        {
-                            //Check if it messes with the enemy line
-                            if (enemyMarbles.Contains(letter.ToString() + (numberCopy + 1).ToString())){
-                                //Check for block 2
-                                if ((numberCopy + 2<=10) && enemyMarbles.Contains(letter.ToString() + (numberCopy + 2).ToString()))
-                                {
-                                    //Check for block 3
-                                    if ((numberCopy + 3 <= 10) && enemyMarbles.Contains(letter.ToString() + (numberCopy + 3).ToString()))
-                                    {
-                                        //Check for block 4
-                                        if ((numberCopy + 4 <= 10) && enemyMarbles.Contains(letter.ToString() + (numberCopy + 4).ToString()))
-                                        {
-                                            score += stopLine4;
-                                        }
-                                        else
-                                        {
-                                            score += stopLine3;
-                                        }
-                                    }
-                                    else {
-                                        score += stopLine2;
-                                    }
-                                }
-                                else {
-                                    score += stopLine1;
-                                }
-                            }
-                            break;
-                        }
-                        numberCopy++;
+                        score1 += EvaluateLine1(evaluatedLine1,myMarbles,enemyMarbles,mrbl,number,letter);
                     }
-                    numberCopy = number;
-                    while (numberCopy > 1)
-                    {
-                        if (myMarbles.Contains(letter.ToString() + (numberCopy - 1).ToString()))
-                        {
-                            evaluatedLine1.Add(letter.ToString() + (numberCopy - 1).ToString());
-                            startPos = (numberCopy - 1);
-                            count++;
-                        }
-                        else
-                        {
-                            //Check if it messes with the enemy line
-                            if (enemyMarbles.Contains(letter.ToString() + (numberCopy - 1).ToString()))
-                            {
-                                //Check for block 2
-                                if ((numberCopy - 2 >= 1) && enemyMarbles.Contains(letter.ToString() + (numberCopy - 2).ToString()))
-                                {
-                                    //Check for block 3
-                                    if ((numberCopy - 3 >= 1) && enemyMarbles.Contains(letter.ToString() + (numberCopy - 3).ToString()))
-                                    {
-                                        //Check for block 4
-                                        if ((numberCopy - 4 >= 1) && enemyMarbles.Contains(letter.ToString() + (numberCopy - 4).ToString()))
-                                        {
-                                             score += stopLine4;
-                                        }
-                                        else
-                                        {
-                                            score += stopLine3;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        score += stopLine2;
-                                    }
-                                }
-                                else
-                                {
-                                    score += stopLine1;
-                                }
-                            }
-                            break;
-                        }
-                        numberCopy--;
-                    }
-                    if (count == 3)
-                    {
-                        score += line3;
-                    }
-                    else if (count == 4)
-                    {
-                        score += line4;
-                    }
-                    else if (count == 2)
-                    {
-                        if (enemyMarbles.Contains(letter + (startPos - 1).ToString()) || enemyMarbles.Contains(letter + (endPos + 1).ToString()))
-                        {
-                            score -= line2;
-                        }
-                        else
-                        {
-                            score += line2;
-                        }
-                    }
+                    );
                 }
                 //Same number, different letter
                 if (!evaluatedLine2.Contains(mrbl))
                 {
-                    evaluatedLine2.Add(mrbl);
-                    int indexOfLetterCopy = indexOfLetter;
-                    int count = 1;
-                    int startPos = indexOfLetterCopy;
-                    int endPos = indexOfLetterCopy;
-                    bool startedLine = false;
-
-                    while (indexOfLetterCopy < 9)
+                    evaluationTasks[1] = Task.Run(() =>
                     {
-                        if (myMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString()))
-                        {
-                            evaluatedLine1.Add(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString());
-                            count++;
-                            endPos = (indexOfLetterCopy + 1);
-                            startedLine = true;
-                        }
-                        else
-                        {
-                            if (startedLine) {
-                                break;
-                            }
-                            if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString()))
-                            {
-                                //Check for block 2
-                                if ((indexOfLetterCopy + 2 <= 9) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 2].ToString() + number.ToString()))
-                                {
-                                    //Check for block 3
-                                    if ((indexOfLetterCopy + 3 <= 9) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 3].ToString() + number.ToString()))
-                                    {
-                                        //Check for block 4
-                                        if ((indexOfLetterCopy + 4 <= 9) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 4].ToString() + number.ToString()))
-                                        {
-                                            score += stopLine4;
-                                        }
-                                        else
-                                        {
-                                            score += stopLine3;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        score += stopLine2;
-                                    }
-                                }
-                                else
-                                {
-                                    score += stopLine1;
-                                }
-                            }
-                            break;
-                        }
-                        indexOfLetterCopy++;
+                        score2 += EvaluateLine2(evaluatedLine1, myMarbles, enemyMarbles, mrbl, number, indexOfLetter);
                     }
-                    indexOfLetterCopy = indexOfLetter;
-                    while (indexOfLetterCopy > 0)
-                    {
-                        if (myMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString()))
-                        {
-                            evaluatedLine1.Add(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString());
-                            startPos = (indexOfLetterCopy - 1);
-                            count++;
-                        }
-                        else
-                        {
-                            if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + number.ToString()))
-                            {
-                                //Check for block 2
-                                if ((indexOfLetterCopy - 2 >= 0) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 2].ToString() + number.ToString()))
-                                {
-                                    //Check for block 3
-                                    if ((indexOfLetterCopy - 3 >= 0) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 3].ToString() + number.ToString()))
-                                    {
-                                        //Check for block 4
-                                        if ((indexOfLetterCopy - 4 >= 0) && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 4].ToString() + number.ToString()))
-                                        {
-                                            score += stopLine4;
-                                        }
-                                        else
-                                        {
-                                            score += stopLine3;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        score += stopLine2;
-                                    }
-                                }
-                                else
-                                {
-                                    score += stopLine1;
-                                }
-                            }
-                            break;
-                        }
-                        indexOfLetterCopy--;
-                    }
-                    if (count == 3)
-                    {
-                        score += line3;
-                    }
-                    else if (count == 4)
-                    {
-                        score += line4;
-                    }
-                    else if (count == 2)
-                    {
-                        if ((startPos - 1 >= 0 && enemyMarbles.Contains(boardLetters[startPos - 1].ToString() + number.ToString())) || (endPos + 1 <= 9 && enemyMarbles.Contains(boardLetters[endPos + 1].ToString() + number.ToString())))
-                        {
-                            score -= line2;
-                        }
-                        else {
-                            score += line2;
-                        }
-                    }
+                    );
                 }
                 //Incrementing number and letter
                 if (!evaluatedLine3.Contains(mrbl))
                 {
-                    evaluatedLine3.Add(mrbl);
-                    int numberCopy = number;
-                    int indexOfLetterCopy = indexOfLetter;
-                    int count = 1;
-                    int startPosLetter = indexOfLetterCopy;
-                    int startPosNumber = numberCopy;
-                    int endPosLetter = indexOfLetterCopy;
-                    int endPosNumber = numberCopy;
-                    while (numberCopy < 10 && indexOfLetterCopy < 9)
+                    evaluationTasks[2] = Task.Run(() =>
                     {
-                        if (myMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + (numberCopy + 1).ToString()))
-                        {
-                            count++;
-                            endPosNumber = numberCopy;
-                            endPosLetter = indexOfLetterCopy;
-                        }
-                        else
-                        {
-                            if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + (numberCopy + 1).ToString()))
-                            {
-                                //Check for block 2
-                                if ((indexOfLetterCopy + 2 <= 9) && numberCopy+2<=10 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 2].ToString() + (numberCopy + 2).ToString()))
-                                {
-                                    //Check for block 3
-                                    if ((indexOfLetterCopy + 3 <= 9) && numberCopy + 3 <= 10 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 3].ToString() + (numberCopy + 3).ToString()))
-                                    {
-                                        //Check for block 4
-                                        if ((indexOfLetterCopy + 4 <= 9) && numberCopy + 4 <= 10 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy + 4].ToString() + (numberCopy + 4).ToString()))
-                                        {
-                                            score += stopLine4;
-                                        }
-                                        else
-                                        {
-                                            score += stopLine3;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        score += stopLine2;
-                                    }
-                                }
-                                else
-                                {
-                                    score += stopLine1;
-                                }
-                            }
-                            break;
-                        }
-                        numberCopy++;
-                        indexOfLetterCopy++;
+                        score3 += EvaluateLine3(evaluatedLine1, myMarbles, enemyMarbles, mrbl, number, indexOfLetter);
                     }
-                    numberCopy = number;
-                    indexOfLetterCopy = indexOfLetter;
-                    while (numberCopy > 0 && indexOfLetterCopy > 0)
-                    {
-                        if (myMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + (numberCopy - 1).ToString()))
-                        {
-                            count++;
-                            startPosNumber = numberCopy;
-                            startPosLetter = indexOfLetterCopy;
-                        }
-                        else
-                        {
-                            if (enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 1].ToString() + (numberCopy - 1).ToString()))
-                            {
-                                //Check for block 2
-                                if ((indexOfLetterCopy - 2 >= 0) && numberCopy - 2 >= 1 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 2].ToString() + (numberCopy - 2).ToString()))
-                                {
-                                    //Check for block 3
-                                    if ((indexOfLetterCopy - 3 >= 0) && numberCopy - 3 >= 1 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 3].ToString() + (numberCopy - 3).ToString()))
-                                    {
-                                        //Check for block 4
-                                        if ((indexOfLetterCopy - 4 >= 0) && numberCopy - 4 >= 1 && enemyMarbles.Contains(boardLetters[indexOfLetterCopy - 4].ToString() + (numberCopy - 4).ToString()))
-                                        {
-                                            score += stopLine4;
-                                        }
-                                        else
-                                        {
-                                            score += stopLine3;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        score += stopLine2;
-                                    }
-                                }
-                                else
-                                {
-                                    score += stopLine1;
-                                }
-                            }
-                            break;
-                        }
-                        numberCopy--;
-                        indexOfLetterCopy--;
-                    }
-                    if (count == 3)
-                    {
-                        score += line3;
-                    }
-                    else if (count == 4)
-                    {
-                        score += line4;
-                    }
-                    else if (count == 2)
-                    {
-                        if ((startPosLetter - 1 >= 0 && enemyMarbles.Contains(boardLetters[startPosLetter - 1].ToString() + startPosNumber.ToString())) || (endPosLetter + 1 <= 9 && enemyMarbles.Contains(boardLetters[endPosLetter + 1].ToString() + endPosNumber.ToString())))
-                        {
-                            score -= line2;
-                        }
-                        else
-                        {
-                            score += line2;
-                        }
-                    }
+                    );
                 }
+                Task.WaitAll(evaluationTasks);
+                score = score + score1 + score2 + score3;
             }
             
             //Get player's current board score
