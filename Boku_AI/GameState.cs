@@ -206,9 +206,8 @@ namespace Boku_AI
             }
         }
 
-        private int EvaluateLine1(List<string> evaluatedLine1, List<string>myMarbles, List<string>enemyMarbles,string mrbl,int number, char letter) {
+        private int EvaluateLine1(List<string> evaluatedLine1, List<string>myMarbles, List<string>enemyMarbles,int number, char letter) {
             int score = 0;
-            evaluatedLine1.Add(mrbl);
             int numberCopy = number;
             int count = 1;
             int startPos = number;
@@ -322,10 +321,9 @@ namespace Boku_AI
             }
             return score;
         }
-        private int EvaluateLine2(List<string> evaluatedLine2, List<string> myMarbles, List<string> enemyMarbles, string mrbl, int number, int indexOfLetter)
+        private int EvaluateLine2(List<string> evaluatedLine2, List<string> myMarbles, List<string> enemyMarbles, int number, int indexOfLetter)
         {
             int score = 0;
-            evaluatedLine2.Add(mrbl);
             int indexOfLetterCopy = indexOfLetter;
             int count = 1;
             int startPos = indexOfLetterCopy;
@@ -443,10 +441,9 @@ namespace Boku_AI
             }
             return score;
         }
-        private int EvaluateLine3(List<string> evaluatedLine3, List<string> myMarbles, List<string> enemyMarbles, string mrbl, int number, int indexOfLetter)
+        private int EvaluateLine3(List<string> evaluatedLine3, List<string> myMarbles, List<string> enemyMarbles, int number, int indexOfLetter)
         {
             int score = 0;
-            evaluatedLine3.Add(mrbl);
             int numberCopy = number;
             int indexOfLetterCopy = indexOfLetter;
             int count = 1;
@@ -603,7 +600,8 @@ namespace Boku_AI
                 {
                     evaluationTasks[0] = Task.Run(() =>
                     {
-                        score1 += EvaluateLine1(evaluatedLine1,myMarbles,enemyMarbles,mrbl,number,letter);
+                        evaluatedLine1.Add(mrbl);
+                        score1 += EvaluateLine1(evaluatedLine1,myMarbles,enemyMarbles,number,letter);
                     }
                     );
                 }
@@ -612,7 +610,8 @@ namespace Boku_AI
                 {
                     evaluationTasks[1] = Task.Run(() =>
                     {
-                        score2 += EvaluateLine2(evaluatedLine1, myMarbles, enemyMarbles, mrbl, number, indexOfLetter);
+                        evaluatedLine2.Add(mrbl);
+                        score2 += EvaluateLine2(evaluatedLine2, myMarbles, enemyMarbles, number, indexOfLetter);
                     }
                     );
                 }
@@ -621,7 +620,8 @@ namespace Boku_AI
                 {
                     evaluationTasks[2] = Task.Run(() =>
                     {
-                        score3 += EvaluateLine3(evaluatedLine1, myMarbles, enemyMarbles, mrbl, number, indexOfLetter);
+                        evaluatedLine3.Add(mrbl);
+                        score3 += EvaluateLine3(evaluatedLine3, myMarbles, enemyMarbles, number, indexOfLetter);
                     }
                     );
                 }
