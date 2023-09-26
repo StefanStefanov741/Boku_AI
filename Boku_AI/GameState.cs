@@ -108,7 +108,6 @@ namespace Boku_AI
                     //Normal move
                     lastWasCapture = false;
                     isPlayer1Turn = !isPlayer1Turn;
-                    takenLastRound = "";
                     if (!logical)
                     {
                         freeHexesHistory.Add(new List<string>(freeHexes));
@@ -117,6 +116,7 @@ namespace Boku_AI
                         takenLastRoundHistory.Add(takenLastRound);
                         btnToPlace.PlaceMarble(!isPlayer1Turn);
                     }
+                    takenLastRound = "";
                     freeHexes.Remove(hex_pos);
                     if (!isPlayer1Turn)
                     {

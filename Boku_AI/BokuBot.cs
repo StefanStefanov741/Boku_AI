@@ -16,10 +16,10 @@ namespace Boku_AI
         DateTime timeIsUp = DateTime.Now.AddDays(10);
 
         //Weights
-        private int minValue = -999999999;
-        private int maxValue = 999999999;
-        private int winValue = 10000000;
-        private int captureBonus = 8000;
+        private static int winValue = 10000000;
+        private static int minValue = -winValue;
+        private static int maxValue = winValue;
+        private static int captureBonus = 8000;
 
         public BokuBot(bool isPl1, int move_time = 5)
         {
@@ -52,7 +52,7 @@ namespace Boku_AI
             //Start tree search
             for (int maxDepth = 1; maxDepth <= 81; maxDepth++)
             {
-                if (timeIsUp > DateTime.Now)
+                if (timeIsUp > DateTime.Now && bestMove.score<winValue-500)
                 {
                     MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta);
                     if (maxDepth == 2)
