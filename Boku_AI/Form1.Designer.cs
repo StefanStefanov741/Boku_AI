@@ -144,6 +144,32 @@
             this.restartBtn.UseVisualStyleBackColor = true;
             this.restartBtn.Click += new System.EventHandler(this.restartGame);
             this.Controls.Add(this.restartBtn);
+
+            //Last Move Labels
+            this.lastMoveSignLabel = new System.Windows.Forms.Label();
+            this.lastMoveSignLabel.AutoSize = true;
+            this.lastMoveSignLabel.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.lastMoveSignLabel.Location = new System.Drawing.Point(954, 458);
+            this.lastMoveSignLabel.Name = "lastMoveSignLabel";
+            this.lastMoveSignLabel.Size = new System.Drawing.Size(90, 15);
+            this.lastMoveSignLabel.TabIndex = 0;
+            this.lastMoveSignLabel.Text = "Last move:";
+            this.lastMoveSignLabel.Font = new Font(this.lastMoveSignLabel.Font, FontStyle.Bold);
+            this.lastMoveSignLabel.Font = new Font(this.lastMoveSignLabel.Font.FontFamily, 14);
+            this.Controls.Add(this.lastMoveSignLabel);
+
+            this.lastMoveLabel = new System.Windows.Forms.Label();
+            this.lastMoveLabel.AutoSize = true;
+            this.lastMoveLabel.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.lastMoveLabel.Location = new System.Drawing.Point(954, 480);
+            this.lastMoveLabel.Name = "lastMoveLabel";
+            this.lastMoveLabel.Size = new System.Drawing.Size(90, 15);
+            this.lastMoveLabel.TabIndex = 0;
+            this.lastMoveLabel.Text = "";
+            this.lastMoveLabel.Font = new Font(this.lastMoveLabel.Font, FontStyle.Bold);
+            this.lastMoveLabel.Font = new Font(this.lastMoveLabel.Font.FontFamily, 14);
+            this.Controls.Add(this.lastMoveLabel);
+
         }
 
         private void AI_timePerMove_box_numberHandler(object sender, KeyPressEventArgs e)
@@ -168,5 +194,7 @@
         private TextBox AI2_timePerMove_box;
         private Label AI1_s_label;
         private Label AI2_s_label;
+        private Label lastMoveSignLabel;
+        private Label lastMoveLabel;
     }
 }

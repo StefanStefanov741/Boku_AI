@@ -196,8 +196,11 @@ namespace Boku_AI
             }
             if (successfulMove)
             {
-                if (!gameState.lastWasCapture) {
+                if (!gameState.lastWasCapture)
+                {
                     gameEnded = gameState.CheckGameEnded(buttonTag, isWhiteMarble);
+                    lastMoveLabel.Text = !gameState.GetisPlayer1Turn() ? "White " + "placed: " + buttonTag: "Black " + "placed: " + buttonTag;
+                    lastMoveLabel.Invalidate();
                     switch (gameEnded)
                     {
                         case 0:
@@ -224,12 +227,15 @@ namespace Boku_AI
                             break;
                     }
                 }
+                else {
+                    lastMoveLabel.Text = !gameState.GetisPlayer1Turn()?"White " + "captured: " + buttonTag:"Black " +"captured: " + buttonTag;
+                    lastMoveLabel.Invalidate();
+                }
                 Task.Run(() => makeBotMove());
             }
             else {
                 MessageBox.Show("Invalid Move! ("+buttonTag+")");
             }
-
         }
 
 

@@ -14,6 +14,7 @@ namespace Boku_AI
         CancellationTokenSource cancellationTokenSource;
         bool isPlayer1;
         DateTime timeIsUp = DateTime.Now.AddDays(10);
+        TranspositionTable tt = new TranspositionTable();
 
         //Weights
         private static int winValue = 10000000;
@@ -64,7 +65,7 @@ namespace Boku_AI
                         possibleMoves = possibleMoves.OrderByDescending(move => move.score).ToList();
                     }
                     //Go deeper
-                    MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta, possibleMoves);
+                    MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta,maxDepth, possibleMoves);
                     if (maxDepth == 2)
                     {
                         //At 1 deep the score could be really good for a bad position => always replace
@@ -75,8 +76,14 @@ namespace Boku_AI
                     {
                         if (currentDepthMove.score > bestMove.score)
                         {
+                            //Calculate the Zobrist hash for the entry state
+                            ulong zobristHash = state.GetZobristHash();
                             bestMove.score = currentDepthMove.score;
                             bestMove.move = currentDepthMove.move;
+                            if (maxDepth > 1) {
+                                //Store best move in the TT
+                                tt.Store(zobristHash, bestMove.score, bestMove.move, maxDepth, maxDepth, bestMove.score <= alpha ? NodeType.UpperBound : bestMove.score >= beta ? NodeType.LowerBound : NodeType.Exact);
+                            }
                         }
                     }
                 }
@@ -87,10 +94,41 @@ namespace Boku_AI
             return bestMove.move;
         }
 
-        private MoveStruct NegaMaxScore(bool isWhitePlayer, GameState entryState, int depth, int alpha, int beta, List<MoveStruct>movesList=null)
+        private MoveStruct NegaMaxScore(bool isWhitePlayer, GameState entryState, int depth, int alpha, int beta, int initialMaxDepth,List<MoveStruct>movesList=null)
         {
-            MoveStruct bestMove = new MoveStruct(minValue,"");
+            //Calculate the Zobrist hash for the entry state
+            ulong zobristHash = entryState.GetZobristHash();
 
+            TranspositionTableEntry ttEntry;
+
+            //Check if a TT entry exists for this state
+            if (tt.TryRetrieve(zobristHash, out ttEntry) && ttEntry.Depth >= depth)
+            {
+                //Use the entry information
+                if (ttEntry.NodeType == NodeType.Exact)
+                {
+                    //Return if it was the exact value
+                    return new MoveStruct(ttEntry.Score, ttEntry.Move);
+                }
+                else if (ttEntry.NodeType == NodeType.LowerBound)
+                {
+                    //Change alpha if it was a lower bound and its bigger
+                    alpha = Math.Max(alpha, ttEntry.Score);
+                }
+                else
+                {
+                    //Change beta if it was a upper bound and its lower
+                    beta = Math.Min(beta, ttEntry.Score);
+                }
+                //Prune if possible
+                if (alpha >= beta)
+                {
+                    return new MoveStruct(ttEntry.Score, ttEntry.Move);
+                }
+            }
+
+            //Continue searching
+            MoveStruct bestMove = new MoveStruct(minValue, "");
             List<string> iterationHexes;
             if (movesList != null)
             {
@@ -145,6 +183,8 @@ namespace Boku_AI
                             {
                                 bestMove.move = iterationHexes[iterationIndex];
                                 bestMove.score = winValue + depth * 1000;
+                                //Store best move in the TT
+                                tt.Store(zobristHash, bestMove.score, bestMove.move, depth, initialMaxDepth, bestMove.score <= alpha ? NodeType.UpperBound : bestMove.score >= beta ? NodeType.LowerBound : NodeType.Exact);
                                 return bestMove;
                             }
                             else
@@ -159,6 +199,8 @@ namespace Boku_AI
                             {
                                 bestMove.move = iterationHexes[iterationIndex];
                                 bestMove.score = winValue + depth * 1000;
+                                //Store best move in the TT
+                                tt.Store(zobristHash, bestMove.score, bestMove.move, depth, initialMaxDepth, bestMove.score <= alpha ? NodeType.UpperBound : bestMove.score >= beta ? NodeType.LowerBound : NodeType.Exact);
                                 return bestMove;
                             }
                             else
@@ -199,7 +241,7 @@ namespace Boku_AI
                             return bestMove;
                         }
                         //Go Deeper
-                        MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha);
+                        MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha, initialMaxDepth);
                         int nextScore = -nextValue.score;
                         int currentEvaluation = currentState.EvaluateBoard(isWhitePlayer);
                         if (nextScore + currentBoardScore + currentEvaluation> bestMove.score)
@@ -217,6 +259,8 @@ namespace Boku_AI
                         }
                         if (nextScore >= beta)
                         {
+                            //Store best move in the TT
+                            tt.Store(zobristHash, bestMove.score, bestMove.move, depth, initialMaxDepth, bestMove.score <= alpha ? NodeType.UpperBound : bestMove.score >= beta ? NodeType.LowerBound : NodeType.Exact);
                             break;
                         }
                     }
