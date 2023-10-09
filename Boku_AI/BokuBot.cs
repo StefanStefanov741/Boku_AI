@@ -91,6 +91,10 @@ namespace Boku_AI
                     break;
                 }
             }
+
+            if (state.taken2RoundsAgo != "" && state.taken2RoundsAgo != bestMove.move && bestMove.score < winValue / 2) {
+                bestMove.move = state.taken2RoundsAgo;
+            }
             return bestMove.move;
         }
 
@@ -225,6 +229,8 @@ namespace Boku_AI
                             GameState capState = new GameState(currentState);
                             capState.placeMarble(possibleCap, true);
                             int capPoints = capState.EvaluateBoard(isWhitePlayer);
+                            int nextScore = -NegaMaxScore(!isWhitePlayer, new GameState(currentState), 2, -beta, -alpha, 2).score;
+                            capPoints += nextScore;
                             if (capPoints > bestCapMove.score) {
                                 bestCapMove.score = capPoints;
                                 bestCapMove.move = possibleCap;
@@ -232,12 +238,23 @@ namespace Boku_AI
                         }
                         currentBoardScore += captureBonus;
                         currentState.placeMarble(bestCapMove.move, true);
-
+                        
                     }
 
                     if (depth > 1)
                     {
                         if (timeIsUp < DateTime.Now) {
+                            if (isWhitePlayer == isPlayer1)
+                            {
+                                if (bestMove.score < winValue - 10000) {
+                                    bestMove.score = minValue;
+                                }
+                            }
+                            else {
+                                if (bestMove.score < winValue - 10000) {
+                                    bestMove.score = winValue;
+                                }
+                            }
                             return bestMove;
                         }
                         //Go Deeper

@@ -26,12 +26,14 @@ namespace Boku_AI
         private List<List<string>> whiteMarblesHistory = new List<List<string>>();
         private List<List<string>> blackMarblesHistory = new List<List<string>>();
         private List<string> takenLastRoundHistory = new List<string>();
+        private List<string> taken2RoundsAgoHistory = new List<string>();
 
         private char[] boardLetters = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J' };
 
         List<HexagonalButton> canBeTaken = new List<HexagonalButton>();
         public List<string> canBeTakenTags = new List<string>();
         public string takenLastRound = "";
+        public string taken2RoundsAgo = "";
 
         ZobristKeys zk = new ZobristKeys();
 
@@ -42,7 +44,7 @@ namespace Boku_AI
         static int stopLine1 = 100;
         static int stopLine2 = 1000;
         static int stopLine3 = 5000;
-        static int stopLine4 = 8000;
+        static int stopLine4 = 5500;
         static int blockBonus = 500;
 
         public GameState(List<HexagonalButton> startingGrid, bool player1turn = true)
@@ -73,6 +75,8 @@ namespace Boku_AI
             this.canBeTaken = new List<HexagonalButton>(gsToCopy.canBeTaken);
             this.canBeTakenTags = new List<string>(gsToCopy.canBeTakenTags);
             this.takenLastRound = gsToCopy.takenLastRound;
+            this.taken2RoundsAgo = gsToCopy.taken2RoundsAgo;
+            this.taken2RoundsAgoHistory = new List<string>(gsToCopy.taken2RoundsAgoHistory);
         }
 
         private void CorrectBoard()
@@ -115,8 +119,10 @@ namespace Boku_AI
                         whiteMarblesHistory.Add(new List<string>(whiteMarbles));
                         blackMarblesHistory.Add(new List<string>(blackMarbles));
                         takenLastRoundHistory.Add(takenLastRound);
+                        taken2RoundsAgoHistory.Add(taken2RoundsAgo);
                         btnToPlace.PlaceMarble(!isPlayer1Turn);
                     }
+                    taken2RoundsAgo = takenLastRound;
                     takenLastRound = "";
                     freeHexes.Remove(hex_pos);
                     if (!isPlayer1Turn)
@@ -132,6 +138,7 @@ namespace Boku_AI
                         whiteMarblesHistory.RemoveAt(0);
                         blackMarblesHistory.RemoveAt(0);
                         takenLastRoundHistory.RemoveAt(0);
+                        taken2RoundsAgoHistory.RemoveAt(0);
                         freeHexesHistory.RemoveAt(0);
                     }
                     return true;
@@ -150,6 +157,7 @@ namespace Boku_AI
                     freeHexes.Add(hex_pos);
                     whiteMarbles.Remove(hex_pos);
                     blackMarbles.Remove(hex_pos);
+                    taken2RoundsAgo = takenLastRound;
                     takenLastRound = hex_pos;
                     if (!logical)
                     {
@@ -198,6 +206,11 @@ namespace Boku_AI
                 {
                     takenLastRound = takenLastRoundHistory.ElementAt(takenLastRoundHistory.Count - 1);
                     takenLastRoundHistory.RemoveAt(takenLastRoundHistory.Count - 1);
+                }
+                if (taken2RoundsAgoHistory.Count > 0)
+                {
+                    taken2RoundsAgo = taken2RoundsAgoHistory.ElementAt(taken2RoundsAgoHistory.Count - 1);
+                    taken2RoundsAgoHistory.RemoveAt(taken2RoundsAgoHistory.Count - 1);
                 }
                 return true;
             }

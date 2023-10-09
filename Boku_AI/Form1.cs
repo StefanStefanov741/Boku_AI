@@ -199,7 +199,15 @@ namespace Boku_AI
                 if (!gameState.lastWasCapture)
                 {
                     gameEnded = gameState.CheckGameEnded(buttonTag, isWhiteMarble);
-                    lastMoveLabel.Text = !gameState.GetisPlayer1Turn() ? "White " + "placed: " + buttonTag: "Black " + "placed: " + buttonTag;
+                    
+                    if (lastMoveLabel.InvokeRequired)
+                    {
+                        lastMoveLabel.Invoke(new MethodInvoker(() => lastMoveLabel.Text = !gameState.GetisPlayer1Turn() ? "White " + "placed: " + buttonTag : "Black " + "placed: " + buttonTag));
+                    }
+                    else
+                    {
+                        lastMoveLabel.Text = !gameState.GetisPlayer1Turn() ? "White " + "placed: " + buttonTag : "Black " + "placed: " + buttonTag;
+                    }
                     lastMoveLabel.Invalidate();
                     switch (gameEnded)
                     {
@@ -228,7 +236,15 @@ namespace Boku_AI
                     }
                 }
                 else {
-                    lastMoveLabel.Text = !gameState.GetisPlayer1Turn()?"White " + "captured: " + buttonTag:"Black " +"captured: " + buttonTag;
+                    if (lastMoveLabel.InvokeRequired)
+                    {
+                        lastMoveLabel.Invoke(new MethodInvoker(() => lastMoveLabel.Text = !gameState.GetisPlayer1Turn() ? "White " + "captured: " + buttonTag : "Black " + "captured: " + buttonTag));
+                    }
+                    else
+                    {
+                        lastMoveLabel.Text = !gameState.GetisPlayer1Turn() ? "White " + "captured: " + buttonTag : "Black " + "captured: " + buttonTag;
+                    }
+                    
                     lastMoveLabel.Invalidate();
                 }
                 Task.Run(() => makeBotMove());
