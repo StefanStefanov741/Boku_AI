@@ -92,7 +92,7 @@ namespace Boku_AI
                 }
             }
 
-            if (state.taken2RoundsAgo != "" && state.taken2RoundsAgo != bestMove.move && bestMove.score < winValue / 2) {
+            if (state.canBeTakenTags.Count == 0 && state.taken2RoundsAgo != "" && state.taken2RoundsAgo != bestMove.move && bestMove.score < winValue / 2) {
                 bestMove.move = state.taken2RoundsAgo;
             }
             return bestMove.move;
