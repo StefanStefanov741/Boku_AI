@@ -39,8 +39,8 @@ namespace Boku_AI
             timeIsUp = DateTime.Now.AddSeconds(moveTime);
 
             //Start NegaMax Search
-            int alpha = minValue;
-            int beta = maxValue;
+            int alpha = -12000;
+            int beta = 12000;
 
             List<MoveStruct> possibleMoves;
             if (state.canBeTakenTags.Count == 0)
@@ -66,6 +66,22 @@ namespace Boku_AI
                     }
                     //Go deeper
                     MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta,maxDepth, possibleMoves);
+
+                    //Windowing
+                    if (currentDepthMove.score >= beta)
+                    {
+                        alpha = currentDepthMove.score;
+                        beta = maxValue;
+                        currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta, maxDepth, possibleMoves);
+                    }
+                    else if (currentDepthMove.score> minValue && currentDepthMove.score <= alpha)
+                    {
+                        alpha = minValue;
+                        beta = currentDepthMove.score;
+                        currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta, maxDepth, possibleMoves);
+                    }
+
+                    //Saving result
                     if (maxDepth == 2)
                     {
                         //At 1 deep the score could be really good for a bad position => always replace
@@ -94,6 +110,21 @@ namespace Boku_AI
 
             if (state.canBeTakenTags.Count == 0 && state.taken2RoundsAgo != "" && state.taken2RoundsAgo != bestMove.move && bestMove.score < winValue / 2) {
                 bestMove.move = state.taken2RoundsAgo;
+            }
+            
+            //1 quick 1ply search to make sure an immediate lost was not missed.
+            GameState myMoveState = new GameState(state);
+            myMoveState.placeMarble(bestMove.move,true);
+            MoveStruct nextOpponentMove = NegaMaxScore(!isPlayer1, myMoveState, 1, minValue, bestMove.score, 1, null);
+            if (nextOpponentMove.score >= maxValue - 5000) {
+                //if my opponent is about to win after my move, instead place where the opponent would have won (and pray for the best)
+                if (state.takenLastRound != nextOpponentMove.move && state.canBeTakenTags.Count==0)
+                {
+                    return nextOpponentMove.move;
+                }
+                else {
+                    return bestMove.move;
+                }
             }
             return bestMove.move;
         }
@@ -186,7 +217,7 @@ namespace Boku_AI
                             if (isWhitePlayer)
                             {
                                 bestMove.move = iterationHexes[iterationIndex];
-                                bestMove.score = winValue + depth * 1000;
+                                bestMove.score = winValue + depth * 2000;
                                 //Store best move in the TT
                                 tt.Store(zobristHash, bestMove.score, bestMove.move, depth, initialMaxDepth, bestMove.score <= alpha ? NodeType.UpperBound : bestMove.score >= beta ? NodeType.LowerBound : NodeType.Exact);
                                 return bestMove;
@@ -194,7 +225,7 @@ namespace Boku_AI
                             else
                             {
                                 bestMove.move = iterationHexes[iterationIndex];
-                                bestMove.score = -(winValue + depth * 1000);
+                                bestMove.score = -(winValue + depth * 2000);
                                 return bestMove;
                             }
                         case 2:
@@ -202,7 +233,7 @@ namespace Boku_AI
                             if (!isWhitePlayer)
                             {
                                 bestMove.move = iterationHexes[iterationIndex];
-                                bestMove.score = winValue + depth * 1000;
+                                bestMove.score = winValue + depth * 2000;
                                 //Store best move in the TT
                                 tt.Store(zobristHash, bestMove.score, bestMove.move, depth, initialMaxDepth, bestMove.score <= alpha ? NodeType.UpperBound : bestMove.score >= beta ? NodeType.LowerBound : NodeType.Exact);
                                 return bestMove;
@@ -210,7 +241,7 @@ namespace Boku_AI
                             else
                             {
                                 bestMove.move = iterationHexes[iterationIndex];
-                                bestMove.score = -(winValue + depth * 1000);
+                                bestMove.score = -(winValue + depth * 2000);
                                 return bestMove;
                             }
                         default:
@@ -223,8 +254,6 @@ namespace Boku_AI
                     {
                         //Choose which one to capture
                         MoveStruct bestCapMove = new MoveStruct(minValue, currentState.canBeTakenTags.ElementAt(1));
-                        int capAlpha = minValue;
-                        int capBeta = maxValue;
                         foreach (string possibleCap in currentState.canBeTakenTags) {
                             GameState capState = new GameState(currentState);
                             capState.placeMarble(possibleCap, true);
@@ -238,7 +267,6 @@ namespace Boku_AI
                         }
                         currentBoardScore += captureBonus;
                         currentState.placeMarble(bestCapMove.move, true);
-                        
                     }
 
                     if (depth > 1)

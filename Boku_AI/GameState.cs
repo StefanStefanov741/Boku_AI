@@ -221,6 +221,7 @@ namespace Boku_AI
         }
 
         private int EvaluateLine1(List<string> evaluatedLine1, List<string>myMarbles, List<string>enemyMarbles,int number, char letter) {
+            //Same letter, different number
             int score = 0;
             int numberCopy = number;
             int count = 1;
@@ -255,20 +256,32 @@ namespace Boku_AI
                                 {
                                     score += stopLine3;
                                     //If it is a more ergent 3 in a line block add more points
-                                    if ((numberCopy + 4 <= 10) && !myMarbles.Contains(letter.ToString() + (numberCopy + 4).ToString())) {
+                                    if ((numberCopy + 4 <= 10) && !myMarbles.Contains(letter.ToString() + (numberCopy + 4).ToString()))
+                                    {
                                         //If on the other side there is also an empty space
                                         score += blockBonus * 3;
+                                    }
+                                    else {
+                                        if (letter == 'A' || letter == 'J') {
+                                            score -= stopLine3;
+                                        }
                                     }
                                 }
                             }
                             else
                             {
-                                score += stopLine2;
+                                if (letter != 'A' && letter != 'J')
+                                {
+                                    score += stopLine2;
+                                }
                             }
                         }
                         else
                         {
-                            score += stopLine1;
+                            if (letter != 'A' && letter != 'J')
+                            {
+                                score += stopLine1;
+                            }
                         }
                     }
                     break;
@@ -309,16 +322,29 @@ namespace Boku_AI
                                         //If on the other side there is also an empty space
                                         score += blockBonus * 3;
                                     }
+                                    else
+                                    {
+                                        if (letter == 'A' || letter == 'J')
+                                        {
+                                            score -= stopLine3;
+                                        }
+                                    }
                                 }
                             }
                             else
                             {
-                                score += stopLine2;
+                                if (letter != 'A' && letter != 'J')
+                                {
+                                    score += stopLine2;
+                                }
                             }
                         }
                         else
                         {
-                            score += stopLine1;
+                            if (letter != 'A' && letter != 'J')
+                            {
+                                score += stopLine1;
+                            }
                         }
                     }
                     break;
@@ -348,6 +374,7 @@ namespace Boku_AI
         }
         private int EvaluateLine2(List<string> evaluatedLine2, List<string> myMarbles, List<string> enemyMarbles, int number, int indexOfLetter)
         {
+            //Same number, different letter
             int score = 0;
             int indexOfLetterCopy = indexOfLetter;
             int count = 1;
@@ -392,16 +419,29 @@ namespace Boku_AI
                                         //If on the other side there is also an empty space
                                         score += blockBonus * 3;
                                     }
+                                    else
+                                    {
+                                        if (number == 1 || number == 10)
+                                        {
+                                            score -= stopLine3;
+                                        }
+                                    }
                                 }
                             }
                             else
                             {
-                                score += stopLine2;
+                                if (number != 1 && number != 10)
+                                {
+                                    score += stopLine2;
+                                }
                             }
                         }
                         else
                         {
-                            score += stopLine1;
+                            if (number != 1 && number != 10)
+                            {
+                                score += stopLine1;
+                            }
                         }
                     }
                     break;
@@ -441,16 +481,29 @@ namespace Boku_AI
                                         //If on the other side there is also an empty space
                                         score += blockBonus * 3;
                                     }
+                                    else
+                                    {
+                                        if (number == 1 || number == 10)
+                                        {
+                                            score -= stopLine3;
+                                        }
+                                    }
                                 }
                             }
                             else
                             {
-                                score += stopLine2;
+                                if (number != 1 && number != 10)
+                                {
+                                    score += stopLine2;
+                                }
                             }
                         }
                         else
                         {
-                            score += stopLine1;
+                            if (number != 1 && number != 10)
+                            {
+                                score += stopLine1;
+                            }
                         }
                     }
                     break;
@@ -480,6 +533,7 @@ namespace Boku_AI
         }
         private int EvaluateLine3(List<string> evaluatedLine3, List<string> myMarbles, List<string> enemyMarbles, int number, int indexOfLetter)
         {
+            //Incrementing letters and numbers
             int score = 0;
             int numberCopy = number;
             int indexOfLetterCopy = indexOfLetter;
@@ -521,16 +575,38 @@ namespace Boku_AI
                                         //If on the other side there is also an empty space
                                         score += blockBonus * 3;
                                     }
+                                    else
+                                    {
+                                        if ((number == 10 && boardLetters.ElementAt(indexOfLetter)=='E')|| (number == 9 && boardLetters.ElementAt(indexOfLetter) == 'D')|| (number == 8 && boardLetters.ElementAt(indexOfLetter) == 'C')||
+                                            (number == 7 && boardLetters.ElementAt(indexOfLetter) == 'B')|| (number == 6 && boardLetters.ElementAt(indexOfLetter) == 'A')||(number == 5 && boardLetters.ElementAt(indexOfLetter) == 'J')||
+                                            (number == 4 && boardLetters.ElementAt(indexOfLetter) == 'I')|| (number == 3 && boardLetters.ElementAt(indexOfLetter) == 'H')|| (number == 2 && boardLetters.ElementAt(indexOfLetter) == 'G')||
+                                            (number == 1 && boardLetters.ElementAt(indexOfLetter) == 'F'))
+                                        {
+                                            score -= stopLine3;
+                                        }
+                                    }
                                 }
                             }
                             else
                             {
-                                score += stopLine2;
+                                if ((number != 10 && boardLetters.ElementAt(indexOfLetter) != 'E') && (number != 9 && boardLetters.ElementAt(indexOfLetter) != 'D') && (number != 8 && boardLetters.ElementAt(indexOfLetter) != 'C') &&
+                                    (number != 7 && boardLetters.ElementAt(indexOfLetter) != 'B') && (number != 6 && boardLetters.ElementAt(indexOfLetter) != 'A') && (number != 5 && boardLetters.ElementAt(indexOfLetter) != 'J') &&
+                                    (number != 4 && boardLetters.ElementAt(indexOfLetter) != 'I') && (number != 3 && boardLetters.ElementAt(indexOfLetter) != 'H') && (number != 2 && boardLetters.ElementAt(indexOfLetter) != 'G') &&
+                                    (number != 1 && boardLetters.ElementAt(indexOfLetter) != 'F'))
+                                {
+                                    score += stopLine2;
+                                }
                             }
                         }
                         else
                         {
-                            score += stopLine1;
+                            if ((number != 10 && boardLetters.ElementAt(indexOfLetter) != 'E') && (number != 9 && boardLetters.ElementAt(indexOfLetter) != 'D') && (number != 8 && boardLetters.ElementAt(indexOfLetter) != 'C') &&
+                                (number != 7 && boardLetters.ElementAt(indexOfLetter) != 'B') && (number != 6 && boardLetters.ElementAt(indexOfLetter) != 'A') && (number != 5 && boardLetters.ElementAt(indexOfLetter) != 'J') &&
+                                (number != 4 && boardLetters.ElementAt(indexOfLetter) != 'I') && (number != 3 && boardLetters.ElementAt(indexOfLetter) != 'H') && (number != 2 && boardLetters.ElementAt(indexOfLetter) != 'G') &&
+                                (number != 1 && boardLetters.ElementAt(indexOfLetter) != 'F'))
+                            {
+                                score += stopLine1;
+                            }
                         }
                     }
                     break;
@@ -573,16 +649,38 @@ namespace Boku_AI
                                         //If on the other side there is also an empty space
                                         score += blockBonus * 3;
                                     }
+                                    else
+                                    {
+                                        if ((number == 10 && boardLetters.ElementAt(indexOfLetter) == 'E') || (number == 9 && boardLetters.ElementAt(indexOfLetter) == 'D') || (number == 8 && boardLetters.ElementAt(indexOfLetter) == 'C') ||
+                                            (number == 7 && boardLetters.ElementAt(indexOfLetter) == 'B') || (number == 6 && boardLetters.ElementAt(indexOfLetter) == 'A') || (number == 5 && boardLetters.ElementAt(indexOfLetter) == 'J') ||
+                                            (number == 4 && boardLetters.ElementAt(indexOfLetter) == 'I') || (number == 3 && boardLetters.ElementAt(indexOfLetter) == 'H') || (number == 2 && boardLetters.ElementAt(indexOfLetter) == 'G') ||
+                                            (number == 1 && boardLetters.ElementAt(indexOfLetter) == 'F'))
+                                        {
+                                            score -= stopLine3;
+                                        }
+                                    }
                                 }
                             }
                             else
                             {
-                                score += stopLine2;
+                                if ((number != 10 && boardLetters.ElementAt(indexOfLetter) != 'E') && (number != 9 && boardLetters.ElementAt(indexOfLetter) != 'D') && (number != 8 && boardLetters.ElementAt(indexOfLetter) != 'C') &&
+                                    (number != 7 && boardLetters.ElementAt(indexOfLetter) != 'B') && (number != 6 && boardLetters.ElementAt(indexOfLetter) != 'A') && (number != 5 && boardLetters.ElementAt(indexOfLetter) != 'J') &&
+                                    (number != 4 && boardLetters.ElementAt(indexOfLetter) != 'I') && (number != 3 && boardLetters.ElementAt(indexOfLetter) != 'H') && (number != 2 && boardLetters.ElementAt(indexOfLetter) != 'G') &&
+                                    (number != 1 && boardLetters.ElementAt(indexOfLetter) != 'F'))
+                                {
+                                    score += stopLine2;
+                                }
                             }
                         }
                         else
                         {
-                            score += stopLine1;
+                            if ((number != 10 && boardLetters.ElementAt(indexOfLetter) != 'E') && (number != 9 && boardLetters.ElementAt(indexOfLetter) != 'D') && (number != 8 && boardLetters.ElementAt(indexOfLetter) != 'C') &&
+                                (number != 7 && boardLetters.ElementAt(indexOfLetter) != 'B') && (number != 6 && boardLetters.ElementAt(indexOfLetter) != 'A') && (number != 5 && boardLetters.ElementAt(indexOfLetter) != 'J') &&
+                                (number != 4 && boardLetters.ElementAt(indexOfLetter) != 'I') && (number != 3 && boardLetters.ElementAt(indexOfLetter) != 'H') && (number != 2 && boardLetters.ElementAt(indexOfLetter) != 'G') &&
+                                (number != 1 && boardLetters.ElementAt(indexOfLetter) != 'F'))
+                            {
+                                score += stopLine1;
+                            }
                         }
                     }
                     break;
@@ -673,6 +771,10 @@ namespace Boku_AI
                         score3 += EvaluateLine3(evaluatedLine3, myMarbles, enemyMarbles, number, indexOfLetter);
                     }
                     );
+                }
+                if ((mrbl.Contains('6') || mrbl.Contains('5') || mrbl.Contains('4') || mrbl.Contains('7') || mrbl.Contains('8')) && (mrbl.Contains('E') || mrbl.Contains('F') || mrbl.Contains('D') || mrbl.Contains('C') || mrbl.Contains('G') || mrbl.Contains('H')))
+                {
+                    score += 100;
                 }
                 Task.WaitAll(evaluationTasks);
                 score = score + score1 + score2 + score3;
