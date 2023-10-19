@@ -20,7 +20,7 @@ namespace Boku_AI
         private static int winValue = 10000000;
         private static int minValue = -winValue;
         private static int maxValue = winValue;
-        private static int captureBonus = 10000;
+        private static int captureBonus = 5000;
 
         public BokuBot(bool isPl1, int move_time = 5)
         {
@@ -116,7 +116,7 @@ namespace Boku_AI
             GameState myMoveState = new GameState(state);
             myMoveState.placeMarble(bestMove.move,true);
             MoveStruct nextOpponentMove = NegaMaxScore(!isPlayer1, myMoveState, 1, minValue, bestMove.score, 1, null);
-            if (nextOpponentMove.score >= maxValue - 5000) {
+            if (bestMove.score<winValue-15000 && nextOpponentMove.score >= maxValue - 5000) {
                 //if my opponent is about to win after my move, instead place where the opponent would have won (and pray for the best)
                 if (state.takenLastRound != nextOpponentMove.move && state.canBeTakenTags.Count==0)
                 {
@@ -271,7 +271,43 @@ namespace Boku_AI
 
                     if (depth > 1)
                     {
-
+                        if (timeIsUp < DateTime.Now) {
+                            if (isWhitePlayer == isPlayer1)
+                            {
+                                if (bestMove.score < winValue - 10000) {
+                                    bestMove.score = minValue;
+                                }
+                            }
+                            else {
+                                if (bestMove.score < winValue - 10000) {
+                                    bestMove.score = winValue;
+                                }
+                            }
+                            return bestMove;
+                        }
+                        //Go Deeper
+                        MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha, initialMaxDepth);
+                        int nextScore = -nextValue.score;
+                        int currentEvaluation = currentState.EvaluateBoard(isWhitePlayer);
+                        if (nextScore + currentBoardScore + currentEvaluation> bestMove.score)
+                        {
+                            bestMove.score = nextScore + currentBoardScore + currentEvaluation;
+                            bestMove.move = iterationHexes[iterationIndex];
+                        }
+                        if (movesList != null)
+                        {
+                            movesList.ElementAt(iterationIndex).score = nextScore +currentBoardScore + currentEvaluation;
+                        }
+                        if (nextScore > alpha)
+                        {
+                            alpha = nextScore;
+                        }
+                        if (nextScore >= beta)
+                        {
+                            //Store best move in the TT
+                            tt.Store(zobristHash, bestMove.score, bestMove.move, depth, initialMaxDepth, bestMove.score <= alpha ? NodeType.UpperBound : bestMove.score >= beta ? NodeType.LowerBound : NodeType.Exact);
+                            break;
+                        }
                     }
                     else
                     {

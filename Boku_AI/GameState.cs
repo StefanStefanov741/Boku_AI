@@ -41,10 +41,10 @@ namespace Boku_AI
         static int line2 = 400;
         static int line4 = 600;
         static int line3 = 2000;
-        static int stopLine1 = 100;
-        static int stopLine2 = 1000;
-        static int stopLine3 = 5000;
-        static int stopLine4 = 5500;
+        static int stopLine1 = 800;
+        static int stopLine2 = 2000;
+        static int stopLine3 = 7000;
+        static int stopLine4 = 7500;
         static int blockBonus = 500;
 
         public GameState(List<HexagonalButton> startingGrid, bool player1turn = true)
