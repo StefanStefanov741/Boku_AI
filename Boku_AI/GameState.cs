@@ -38,14 +38,14 @@ namespace Boku_AI
         ZobristKeys zk = new ZobristKeys();
 
         //Weights
-        static int line2 = 400;
-        static int line4 = 600;
-        static int line3 = 2000;
+        static int line2 = 800;
+        static int line4 = 2000;
+        static int line3 = 3000;
         static int stopLine1 = 800;
         static int stopLine2 = 2000;
         static int stopLine3 = 7000;
         static int stopLine4 = 7500;
-        static int blockBonus = 500;
+        static int blockBonus = 1200;
 
         public GameState(List<HexagonalButton> startingGrid, bool player1turn = true)
         {
