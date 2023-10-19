@@ -271,43 +271,7 @@ namespace Boku_AI
 
                     if (depth > 1)
                     {
-                        if (timeIsUp < DateTime.Now) {
-                            if (isWhitePlayer == isPlayer1)
-                            {
-                                if (bestMove.score < winValue - 10000) {
-                                    bestMove.score = minValue;
-                                }
-                            }
-                            else {
-                                if (bestMove.score < winValue - 10000) {
-                                    bestMove.score = winValue;
-                                }
-                            }
-                            return bestMove;
-                        }
-                        //Go Deeper
-                        MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha, initialMaxDepth);
-                        int nextScore = -nextValue.score;
-                        int currentEvaluation = currentState.EvaluateBoard(isWhitePlayer);
-                        if (nextScore + currentBoardScore + currentEvaluation> bestMove.score)
-                        {
-                            bestMove.score = nextScore + currentBoardScore + currentEvaluation;
-                            bestMove.move = iterationHexes[iterationIndex];
-                        }
-                        if (movesList != null)
-                        {
-                            movesList.ElementAt(iterationIndex).score = nextScore +currentBoardScore + currentEvaluation;
-                        }
-                        if (nextScore > alpha)
-                        {
-                            alpha = nextScore;
-                        }
-                        if (nextScore >= beta)
-                        {
-                            //Store best move in the TT
-                            tt.Store(zobristHash, bestMove.score, bestMove.move, depth, initialMaxDepth, bestMove.score <= alpha ? NodeType.UpperBound : bestMove.score >= beta ? NodeType.LowerBound : NodeType.Exact);
-                            break;
-                        }
+
                     }
                     else
                     {
