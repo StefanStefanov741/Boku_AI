@@ -860,7 +860,7 @@ namespace Boku_AI
                 }
                 if ((mrbl.Contains('6') || mrbl.Contains('5') || mrbl.Contains('4') || mrbl.Contains('7') || mrbl.Contains('8')) && (mrbl.Contains('E') || mrbl.Contains('F') || mrbl.Contains('D') || mrbl.Contains('C') || mrbl.Contains('G') || mrbl.Contains('H')))
                 {
-                    score += 100;
+                    score += 1000;
                 }
                 //Task.WaitAll(evaluationTasks);
                 score = score + score1 + score2 + score3;
