@@ -1,4 +1,6 @@
-﻿namespace Boku_AI
+﻿using System;
+
+namespace Boku_AI
 {
     public class ZobristKeys
     {
@@ -10,6 +12,8 @@
         public ulong isWhiteTurnKey;
         public ulong isBlackTurnKey;
 
+        Random rnd;
+        byte[] buffer = new byte[8];
 
         public ZobristKeys()
         {
@@ -18,6 +22,7 @@
 
         private void InitializeKeys()
         {
+            rnd = new Random();
             hexes = new List<string>(AllHexes.hexes);
             BlackKeys = new Dictionary<string, ulong>();
             WhiteKeys = new Dictionary<string, ulong>();
@@ -34,8 +39,7 @@
 
         private ulong GenerateRandom64BitKey()
         {
-            byte[] buffer = new byte[8];
-            new Random().NextBytes(buffer);
+            rnd.NextBytes(buffer);
             return BitConverter.ToUInt64(buffer, 0);
         }
 

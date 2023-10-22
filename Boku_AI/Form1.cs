@@ -4,13 +4,19 @@ namespace Boku_AI
 {
     public partial class Form1 : Form
     {
-        GameState gameState = new GameState(startingGrid:null);
-        int gameEnded = -1;
-        BokuBot pl1_bot = null;
-        BokuBot pl2_bot = null;
+        GameState gameState;
+        int gameEnded;
+        BokuBot pl1_bot;
+        BokuBot pl2_bot;
+        private event EventHandler BotMakeMoveRequested;
 
         public Form1()
         {
+            gameEnded = -1;
+            gameState = new GameState(startingGrid: null);
+            pl1_bot = null;
+            pl2_bot = null;
+            BotMakeMoveRequested += (sender, e) => Task.Run(() => makeBotMove());
             InitializeComponent();
             BuildGrid();
         }
@@ -247,7 +253,7 @@ namespace Boku_AI
                     
                     lastMoveLabel.Invalidate();
                 }
-                Task.Run(() => makeBotMove());
+                BotMakeMoveRequested.Invoke(this, EventArgs.Empty);
             }
             else {
                 MessageBox.Show("Invalid Move! ("+buttonTag+")");
@@ -259,12 +265,14 @@ namespace Boku_AI
             if (gameState.GetisPlayer1Turn() && pl1_bot != null)
             {
                 //Make Player 1 AI do a move
-                ExecMove(await pl1_bot.MakeMove(gameState));
+                string m = pl1_bot.MakeMove(gameState);
+                ExecMove(m);
             }
             else if (!gameState.GetisPlayer1Turn() && pl2_bot != null)
             {
                 //Make Player 2 AI do a move
-                ExecMove(await pl2_bot.MakeMove(gameState));
+                string m = pl2_bot.MakeMove(gameState);
+                ExecMove(m);
             }
         }
 
@@ -295,7 +303,7 @@ namespace Boku_AI
                 //Make AI take over
                 pl1_bot = new BokuBot(true,int.Parse(AI1_timePerMove_box.Text));
                 if (gameState.GetisPlayer1Turn()) {
-                    ExecMove(await pl1_bot.MakeMove(gameState));
+                    ExecMove(pl1_bot.MakeMove(gameState));
                 }
             }
             else {
@@ -312,7 +320,7 @@ namespace Boku_AI
                 pl2_bot = new BokuBot(false,int.Parse(AI2_timePerMove_box.Text));
                 if (!gameState.GetisPlayer1Turn())
                 {
-                    ExecMove(await pl2_bot.MakeMove(gameState));
+                    ExecMove(pl2_bot.MakeMove(gameState));
                 }
             }
             else

@@ -5,7 +5,6 @@ using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using static System.Formats.Asn1.AsnWriter;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
@@ -15,37 +14,38 @@ namespace Boku_AI
     internal class GameState
     {
         private bool isPlayer1Turn;
-        public bool lastWasCapture = false;
+        public bool lastWasCapture;
 
         public List<HexagonalButton> grid;
-        public List<string> freeHexes = new List<string>(AllHexes.hexes);
-        private List<string> whiteMarbles = new List<string>();
-        private List<string> blackMarbles = new List<string>();
+        public List<string> freeHexes;
+        private List<string> whiteMarbles;
+        private List<string> blackMarbles;
 
-        private List<List<string>> freeHexesHistory = new List<List<string>>();
-        private List<List<string>> whiteMarblesHistory = new List<List<string>>();
-        private List<List<string>> blackMarblesHistory = new List<List<string>>();
-        private List<string> takenLastRoundHistory = new List<string>();
-        private List<string> taken2RoundsAgoHistory = new List<string>();
+        private List<List<string>> freeHexesHistory;
+        private List<List<string>> whiteMarblesHistory;
+        private List<List<string>> blackMarblesHistory;
+        private List<string> takenLastRoundHistory;
+        private List<string> taken2RoundsAgoHistory;
 
-        private char[] boardLetters = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J' };
+        private char[] boardLetters;
 
-        List<HexagonalButton> canBeTaken = new List<HexagonalButton>();
-        public List<string> canBeTakenTags = new List<string>();
-        public string takenLastRound = "";
-        public string taken2RoundsAgo = "";
-
-        ZobristKeys zk = new ZobristKeys();
+        List<HexagonalButton> canBeTaken;
+        public List<string> canBeTakenTags;
+        public string takenLastRound;
+        public string taken2RoundsAgo;
+        Random randomizer;
+        ZobristKeys zk;
 
         //Weights
-        static int line2 = 800;
-        static int line4 = 2000;
-        static int line3 = 3000;
-        static int stopLine1 = 800;
-        static int stopLine2 = 2000;
-        static int stopLine3 = 7000;
-        static int stopLine4 = 7500;
-        static int blockBonus = 1200;
+        static int line2;
+        static int line4;
+        static int line3;
+        static int stopLine1;
+        static int stopLine2;
+        static int stopLine3;
+        static int stopLine4;
+        static int blockBonus;
+        static int free4lineBonus;
 
         public GameState(List<HexagonalButton> startingGrid, bool player1turn = true)
         {
@@ -57,13 +57,50 @@ namespace Boku_AI
             {
                 grid = startingGrid;
             }
+            line2 = 1800;
+            line4 = 6000;
+            line3 = 5500;
+            stopLine1 = 800;
+            stopLine2 = 2000;
+            stopLine3 = 5000;
+            stopLine4 = 10000;
+            blockBonus = 1200;
+            free4lineBonus = 3000;
             isPlayer1Turn = player1turn;
+            zk = new ZobristKeys();
+            randomizer = new Random();
+            boardLetters = new []{ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J' };
+            freeHexes = new List<string>(AllHexes.hexes);
+            lastWasCapture = false;
+            whiteMarbles = new List<string>();
+            blackMarbles = new List<string>();
+            freeHexesHistory = new List<List<string>>();
+            whiteMarblesHistory = new List<List<string>>();
+            blackMarblesHistory = new List<List<string>>();
+            takenLastRoundHistory = new List<string>();
+            taken2RoundsAgoHistory = new List<string>();
+            canBeTaken = new List<HexagonalButton>();
+            canBeTakenTags = new List<string>();
+            takenLastRound = "";
+            taken2RoundsAgo = "";
         }
 
         public GameState(GameState gsToCopy)
         {
+            line2 = 1800;
+            line4 = 6000;
+            line3 = 5500;
+            stopLine1 = 800;
+            stopLine2 = 2000;
+            stopLine3 = 5000;
+            stopLine4 = 6500;
+            blockBonus = 1200;
+            free4lineBonus = 4000;
             this.zk = gsToCopy.zk;
+            this.randomizer = gsToCopy.randomizer;
+            this.boardLetters = gsToCopy.boardLetters;
             this.isPlayer1Turn = gsToCopy.isPlayer1Turn;
+            this.lastWasCapture = gsToCopy.lastWasCapture;
             this.grid = new List<HexagonalButton>(gsToCopy.grid);
             this.freeHexes = new List<string>(gsToCopy.freeHexes);
             this.whiteMarbles = new List<string>(gsToCopy.whiteMarbles);
@@ -220,13 +257,17 @@ namespace Boku_AI
             }
         }
 
-        private int EvaluateLine1(List<string> evaluatedLine1, List<string>myMarbles, List<string>enemyMarbles,int number, char letter) {
+        private int EvaluateLine1(List<string> evaluatedLine1, List<string> myMarbles, List<string> enemyMarbles, int number, char letter)
+        {
             //Same letter, different number
             int score = 0;
             int numberCopy = number;
             int count = 1;
             int startPos = number;
             int endPos = number;
+
+            bool side1Free = false;
+            bool side2Free = false;
 
             while (numberCopy < 10)
             {
@@ -261,8 +302,10 @@ namespace Boku_AI
                                         //If on the other side there is also an empty space
                                         score += blockBonus * 3;
                                     }
-                                    else {
-                                        if (letter == 'A' || letter == 'J') {
+                                    else
+                                    {
+                                        if (letter == 'A' || letter == 'J')
+                                        {
                                             score -= stopLine3;
                                         }
                                     }
@@ -283,6 +326,9 @@ namespace Boku_AI
                                 score += stopLine1;
                             }
                         }
+                    }
+                    else {
+                        side1Free = true;
                     }
                     break;
                 }
@@ -347,6 +393,9 @@ namespace Boku_AI
                             }
                         }
                     }
+                    else {
+                        side2Free = true;
+                    }
                     break;
                 }
                 numberCopy--;
@@ -358,6 +407,9 @@ namespace Boku_AI
             else if (count == 4)
             {
                 score += line4;
+                if (side1Free && side2Free) {
+                    score += free4lineBonus;
+                }
             }
             else if (count == 2)
             {
@@ -381,8 +433,10 @@ namespace Boku_AI
             int startPos = indexOfLetterCopy;
             int endPos = indexOfLetterCopy;
             bool startedLine = false;
+            bool side1Free = false;
+            bool side2Free = false;
 
-            while (indexOfLetterCopy < 9)
+            while (indexOfLetterCopy < 8)
             {
                 if (myMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + number.ToString()))
                 {
@@ -443,6 +497,9 @@ namespace Boku_AI
                                 score += stopLine1;
                             }
                         }
+                    }
+                    else {
+                        side1Free = true;
                     }
                     break;
                 }
@@ -506,6 +563,9 @@ namespace Boku_AI
                             }
                         }
                     }
+                    else {
+                        side2Free = true;
+                    }
                     break;
                 }
                 indexOfLetterCopy--;
@@ -517,6 +577,10 @@ namespace Boku_AI
             else if (count == 4)
             {
                 score += line4;
+                if (side1Free && side2Free)
+                {
+                    score += free4lineBonus;
+                }
             }
             else if (count == 2)
             {
@@ -542,7 +606,9 @@ namespace Boku_AI
             int startPosNumber = numberCopy;
             int endPosLetter = indexOfLetterCopy;
             int endPosNumber = numberCopy;
-            while (numberCopy < 10 && indexOfLetterCopy < 9)
+            bool side1Free = false;
+            bool side2Free = false;
+            while (numberCopy < 10 && indexOfLetterCopy < 8)
             {
                 if (myMarbles.Contains(boardLetters[indexOfLetterCopy + 1].ToString() + (numberCopy + 1).ToString()))
                 {
@@ -577,9 +643,9 @@ namespace Boku_AI
                                     }
                                     else
                                     {
-                                        if ((number == 10 && boardLetters.ElementAt(indexOfLetter)=='E')|| (number == 9 && boardLetters.ElementAt(indexOfLetter) == 'D')|| (number == 8 && boardLetters.ElementAt(indexOfLetter) == 'C')||
-                                            (number == 7 && boardLetters.ElementAt(indexOfLetter) == 'B')|| (number == 6 && boardLetters.ElementAt(indexOfLetter) == 'A')||(number == 5 && boardLetters.ElementAt(indexOfLetter) == 'J')||
-                                            (number == 4 && boardLetters.ElementAt(indexOfLetter) == 'I')|| (number == 3 && boardLetters.ElementAt(indexOfLetter) == 'H')|| (number == 2 && boardLetters.ElementAt(indexOfLetter) == 'G')||
+                                        if ((number == 10 && boardLetters.ElementAt(indexOfLetter) == 'E') || (number == 9 && boardLetters.ElementAt(indexOfLetter) == 'D') || (number == 8 && boardLetters.ElementAt(indexOfLetter) == 'C') ||
+                                            (number == 7 && boardLetters.ElementAt(indexOfLetter) == 'B') || (number == 6 && boardLetters.ElementAt(indexOfLetter) == 'A') || (number == 5 && boardLetters.ElementAt(indexOfLetter) == 'J') ||
+                                            (number == 4 && boardLetters.ElementAt(indexOfLetter) == 'I') || (number == 3 && boardLetters.ElementAt(indexOfLetter) == 'H') || (number == 2 && boardLetters.ElementAt(indexOfLetter) == 'G') ||
                                             (number == 1 && boardLetters.ElementAt(indexOfLetter) == 'F'))
                                         {
                                             score -= stopLine3;
@@ -608,6 +674,9 @@ namespace Boku_AI
                                 score += stopLine1;
                             }
                         }
+                    }
+                    else {
+                        side1Free = true;
                     }
                     break;
                 }
@@ -683,6 +752,9 @@ namespace Boku_AI
                             }
                         }
                     }
+                    else {
+                        side2Free = true;
+                    }
                     break;
                 }
                 numberCopy--;
@@ -695,6 +767,10 @@ namespace Boku_AI
             else if (count == 4)
             {
                 score += line4;
+                if (side1Free && side2Free)
+                {
+                    score += free4lineBonus;
+                }
             }
             else if (count == 2)
             {
@@ -713,25 +789,25 @@ namespace Boku_AI
         {
             //Evaluate board score
             int score = 0;
-            
+
             List<string> myMarbles;
             List<string> enemyMarbles;
             List<string> evaluatedLine1 = new List<string>();
             List<string> evaluatedLine2 = new List<string>();
             List<string> evaluatedLine3 = new List<string>();
-            Task[] evaluationTasks = new Task[3];
+            //Task[] evaluationTasks = new Task[3];
 
             if (isWhitePlayer)
             {
                 myMarbles = new List<string>(whiteMarbles);
                 enemyMarbles = new List<string>(blackMarbles);
-                score += (whiteMarbles.Count() - blackMarbles.Count())*20;
+                score += (whiteMarbles.Count() - blackMarbles.Count()) * 20;
             }
             else
             {
                 myMarbles = new List<string>(blackMarbles);
                 enemyMarbles = new List<string>(whiteMarbles);
-                score += ((blackMarbles.Count()+1) - whiteMarbles.Count()) * 20;
+                score += ((blackMarbles.Count() + 1) - whiteMarbles.Count()) * 20;
             }
 
             foreach (string mrbl in myMarbles)
@@ -745,43 +821,53 @@ namespace Boku_AI
                 //Same letter, different number
                 if (!evaluatedLine1.Contains(mrbl))
                 {
+                    /*
                     evaluationTasks[0] = Task.Run(() =>
                     {
                         evaluatedLine1.Add(mrbl);
-                        score1 += EvaluateLine1(evaluatedLine1,myMarbles,enemyMarbles,number,letter);
+                        score1 += EvaluateLine1(evaluatedLine1, myMarbles, enemyMarbles, number, letter);
                     }
                     );
+                    */
+                    evaluatedLine1.Add(mrbl);
+                    score1 += EvaluateLine1(evaluatedLine1, myMarbles, enemyMarbles, number, letter);
                 }
                 //Same number, different letter
                 if (!evaluatedLine2.Contains(mrbl))
                 {
+                    /*
                     evaluationTasks[1] = Task.Run(() =>
                     {
                         evaluatedLine2.Add(mrbl);
                         score2 += EvaluateLine2(evaluatedLine2, myMarbles, enemyMarbles, number, indexOfLetter);
                     }
-                    );
+                    );*/
+                    evaluatedLine2.Add(mrbl);
+                    score2 += EvaluateLine2(evaluatedLine2, myMarbles, enemyMarbles, number, indexOfLetter);
                 }
                 //Incrementing number and letter
                 if (!evaluatedLine3.Contains(mrbl))
                 {
+                    /*
                     evaluationTasks[2] = Task.Run(() =>
                     {
                         evaluatedLine3.Add(mrbl);
                         score3 += EvaluateLine3(evaluatedLine3, myMarbles, enemyMarbles, number, indexOfLetter);
                     }
-                    );
+                    );*/
+                    evaluatedLine3.Add(mrbl);
+                    score3 += EvaluateLine3(evaluatedLine3, myMarbles, enemyMarbles, number, indexOfLetter);
                 }
                 if ((mrbl.Contains('6') || mrbl.Contains('5') || mrbl.Contains('4') || mrbl.Contains('7') || mrbl.Contains('8')) && (mrbl.Contains('E') || mrbl.Contains('F') || mrbl.Contains('D') || mrbl.Contains('C') || mrbl.Contains('G') || mrbl.Contains('H')))
                 {
                     score += 100;
                 }
-                Task.WaitAll(evaluationTasks);
+                //Task.WaitAll(evaluationTasks);
                 score = score + score1 + score2 + score3;
             }
-            
+
             //Get player's current board score
-            score += new Random().Next(-100,100);
+            score += randomizer.Next(-100, 100);
             return score;
         }
 
@@ -845,7 +931,7 @@ namespace Boku_AI
                     //Possibly 5 in a row with the same number
                     int matchCount = 1;
                     int letterIndexCopy = indexOfLetter;
-                    while (letterIndexCopy < 9)
+                    while (letterIndexCopy < 8)
                     {
                         if (whiteMarbles.Contains(boardLetters[letterIndexCopy + 1].ToString() + number.ToString()))
                         {
@@ -884,7 +970,7 @@ namespace Boku_AI
                     int matchCount = 1;
                     int numberCopy = number;
                     int letterIndexCopy = indexOfLetter;
-                    while (numberCopy < 10 && letterIndexCopy < 9)
+                    while (numberCopy < 10 && letterIndexCopy < 8)
                     {
                         if (whiteMarbles.Contains(boardLetters[letterIndexCopy + 1].ToString() + (numberCopy + 1).ToString()))
                         {
@@ -901,9 +987,9 @@ namespace Boku_AI
                     {
                         numberCopy = number;
                         letterIndexCopy = indexOfLetter;
-                        while (number > 0 && letterIndexCopy > 0)
+                        while (numberCopy > 1 && letterIndexCopy > 0)
                         {
-                            if (whiteMarbles.Contains(boardLetters[letterIndexCopy - 1].ToString() + (number - 1).ToString()))
+                            if (whiteMarbles.Contains(boardLetters[letterIndexCopy - 1].ToString() + (numberCopy - 1).ToString()))
                             {
                                 matchCount++;
                             }
@@ -911,7 +997,7 @@ namespace Boku_AI
                             {
                                 break;
                             }
-                            number--;
+                            numberCopy--;
                             letterIndexCopy--;
                         }
                     }
@@ -967,7 +1053,7 @@ namespace Boku_AI
                     //Possibly 5 in a row with the same number
                     int matchCount = 1;
                     int letterIndexCopy = indexOfLetter;
-                    while (letterIndexCopy < 9)
+                    while (letterIndexCopy < 8)
                     {
                         if (blackMarbles.Contains(boardLetters[letterIndexCopy + 1].ToString() + number.ToString()))
                         {
@@ -1006,7 +1092,7 @@ namespace Boku_AI
                     int matchCount = 1;
                     int numberCopy = number;
                     int letterIndexCopy = indexOfLetter;
-                    while (numberCopy < 10 && letterIndexCopy < 9)
+                    while (numberCopy < 10 && letterIndexCopy < 8)
                     {
                         if (blackMarbles.Contains(boardLetters[letterIndexCopy + 1].ToString() + (numberCopy + 1).ToString()))
                         {
@@ -1023,9 +1109,9 @@ namespace Boku_AI
                     {
                         numberCopy = number;
                         letterIndexCopy = indexOfLetter;
-                        while (number > 0 && letterIndexCopy > 0)
+                        while (numberCopy > 1 && letterIndexCopy > 0)
                         {
-                            if (blackMarbles.Contains(boardLetters[letterIndexCopy - 1].ToString() + (number - 1).ToString()))
+                            if (blackMarbles.Contains(boardLetters[letterIndexCopy - 1].ToString() + (numberCopy - 1).ToString()))
                             {
                                 matchCount++;
                             }
@@ -1033,7 +1119,7 @@ namespace Boku_AI
                             {
                                 break;
                             }
-                            number--;
+                            numberCopy--;
                             letterIndexCopy--;
                         }
                     }
@@ -1063,11 +1149,7 @@ namespace Boku_AI
 
         public bool CheckCapture(string lastPlaced, bool isWhite, bool logical = false)
         {
-            if (lastWasCapture)
-            {
-                return false;
-            }
-            List<List<String>> capturedPool = new List<List<String>>();
+            string capturedPool = "";
             char letter = lastPlaced.ElementAt(0);
             int number = int.Parse(lastPlaced.Substring(1));
             int indexOfLetter = Array.IndexOf(boardLetters, letter);
@@ -1076,29 +1158,29 @@ namespace Boku_AI
                 //Check for capture with the same letter (Both ways)
                 if (blackMarbles.Contains(letter + (number - 1).ToString()) && blackMarbles.Contains(letter + (number - 2).ToString()) && whiteMarbles.Contains(letter + (number - 3).ToString()))
                 {
-                    capturedPool.Add(new List<string>() { letter + (number - 1).ToString(), letter + (number - 2).ToString() });
+                    capturedPool += letter + (number - 1).ToString() + "|" + letter + (number - 2).ToString();
                 }
                 if (blackMarbles.Contains(letter + (number + 1).ToString()) && blackMarbles.Contains(letter + (number + 2).ToString()) && whiteMarbles.Contains(letter + (number + 3).ToString()))
                 {
-                    capturedPool.Add(new List<string>() { letter + (number + 1).ToString(), letter + (number + 2).ToString() });
+                    capturedPool += letter + (number + 1).ToString() + "|" + letter + (number + 2).ToString();
                 }
                 //Check for capture with the same number (Both ways)
                 if (indexOfLetter - 3 >= 0 && blackMarbles.Contains(boardLetters[indexOfLetter - 1].ToString() + number.ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter - 2].ToString() + number.ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter - 3].ToString() + number.ToString()))
                 {
-                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter - 1].ToString() + number.ToString(), boardLetters[indexOfLetter - 2].ToString() + number.ToString() });
+                    capturedPool += boardLetters[indexOfLetter - 1].ToString() + number.ToString() + "|" + boardLetters[indexOfLetter - 2].ToString() + number.ToString();
                 }
                 if (indexOfLetter + 3 <= boardLetters.Length - 1 && blackMarbles.Contains(boardLetters[indexOfLetter + 1].ToString() + number.ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter + 2].ToString() + number.ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter + 3].ToString() + number.ToString()))
                 {
-                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter + 1].ToString() + number.ToString(), boardLetters[indexOfLetter + 2].ToString() + number.ToString() });
+                    capturedPool += boardLetters[indexOfLetter + 1].ToString() + number.ToString() + "|" + boardLetters[indexOfLetter + 2].ToString() + number.ToString();
                 }
                 //Check for capture vertically (Both ways)
                 if (indexOfLetter - 3 >= 0 && blackMarbles.Contains(boardLetters[indexOfLetter - 1].ToString() + (number - 1).ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter - 2].ToString() + (number - 2).ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter - 3].ToString() + (number - 3).ToString()))
                 {
-                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter - 1].ToString() + (number - 1).ToString(), boardLetters[indexOfLetter - 2].ToString() + (number - 2).ToString() });
+                    capturedPool += boardLetters[indexOfLetter - 1].ToString() + (number - 1).ToString() + "|" + boardLetters[indexOfLetter - 2].ToString() + (number - 2).ToString();
                 }
                 if (indexOfLetter + 3 <= boardLetters.Length - 1 && blackMarbles.Contains(boardLetters[indexOfLetter + 1].ToString() + (number + 1).ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter + 2].ToString() + (number + 2).ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter + 3].ToString() + (number + 3).ToString()))
                 {
-                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter + 1].ToString() + (number + 1).ToString(), boardLetters[indexOfLetter + 2].ToString() + (number + 2).ToString() });
+                    capturedPool += boardLetters[indexOfLetter + 1].ToString() + (number + 1).ToString() + "|" + boardLetters[indexOfLetter + 2].ToString() + (number + 2).ToString();
                 }
             }
             else
@@ -1106,51 +1188,48 @@ namespace Boku_AI
                 //Check for capture with the same letter (Both ways)
                 if (whiteMarbles.Contains(letter + (number - 1).ToString()) && whiteMarbles.Contains(letter + (number - 2).ToString()) && blackMarbles.Contains(letter + (number - 3).ToString()))
                 {
-                    capturedPool.Add(new List<string>() { letter + (number - 1).ToString(), letter + (number - 2).ToString() });
+                    capturedPool += letter + (number - 1).ToString() + "|" + letter + (number - 2).ToString();
                 }
                 if (whiteMarbles.Contains(letter + (number + 1).ToString()) && whiteMarbles.Contains(letter + (number + 2).ToString()) && blackMarbles.Contains(letter + (number + 3).ToString()))
                 {
-                    capturedPool.Add(new List<string>() { letter + (number + 1).ToString(), letter + (number + 2).ToString() });
+                    capturedPool += letter + (number + 1).ToString() + "|" + letter + (number + 2).ToString();
                 }
                 //Check for capture with the same number (Both ways)
                 if (indexOfLetter - 3 >= 0 && whiteMarbles.Contains(boardLetters[indexOfLetter - 1].ToString() + number.ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter - 2].ToString() + number.ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter - 3].ToString() + number.ToString()))
                 {
-                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter - 1].ToString() + number.ToString(), boardLetters[indexOfLetter - 2].ToString() + number.ToString() });
+                    capturedPool += boardLetters[indexOfLetter - 1].ToString() + number.ToString() + "|" + boardLetters[indexOfLetter - 2].ToString() + number.ToString();
                 }
                 if (indexOfLetter + 3 <= boardLetters.Length - 1 && whiteMarbles.Contains(boardLetters[indexOfLetter + 1].ToString() + number.ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter + 2].ToString() + number.ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter + 3].ToString() + number.ToString()))
                 {
-                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter + 1].ToString() + number.ToString(), boardLetters[indexOfLetter + 2].ToString() + number.ToString() });
+                    capturedPool += boardLetters[indexOfLetter + 1].ToString() + number.ToString() + "|" + boardLetters[indexOfLetter + 2].ToString() + number.ToString();
                 }
                 //Check for capture vertically (Both ways)
                 if (indexOfLetter - 3 >= 0 && whiteMarbles.Contains(boardLetters[indexOfLetter - 1].ToString() + (number - 1).ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter - 2].ToString() + (number - 2).ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter - 3].ToString() + (number - 3).ToString()))
                 {
-                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter - 1].ToString() + (number - 1).ToString(), boardLetters[indexOfLetter - 2].ToString() + (number - 2).ToString() });
+                    capturedPool += boardLetters[indexOfLetter - 1].ToString() + (number - 1).ToString() + "|" + boardLetters[indexOfLetter - 2].ToString() + (number - 2).ToString();
                 }
                 if (indexOfLetter + 3 <= boardLetters.Length - 1 && whiteMarbles.Contains(boardLetters[indexOfLetter + 1].ToString() + (number + 1).ToString()) && whiteMarbles.Contains(boardLetters[indexOfLetter + 2].ToString() + (number + 2).ToString()) && blackMarbles.Contains(boardLetters[indexOfLetter + 3].ToString() + (number + 3).ToString()))
                 {
-                    capturedPool.Add(new List<string>() { boardLetters[indexOfLetter + 1].ToString() + (number + 1).ToString(), boardLetters[indexOfLetter + 2].ToString() + (number + 2).ToString() });
+                    capturedPool += boardLetters[indexOfLetter + 1].ToString() + (number + 1).ToString() + "|" + boardLetters[indexOfLetter + 2].ToString() + (number + 2).ToString();
                 }
             }
 
-            if (capturedPool.Count > 0)
+            if (capturedPool.Length > 0)
             {
-                foreach (List<string> capList in capturedPool)
+                foreach (string mrbl in capturedPool.Split("|"))
                 {
-                    foreach (string mrbl in capList)
+                    foreach (HexagonalButton btn in grid)
                     {
-                        foreach (HexagonalButton btn in grid)
+                        if (btn.tag == mrbl)
                         {
-                            if (btn.tag == mrbl)
+                            if (!logical)
                             {
-                                if (!logical)
-                                {
-                                    btn.canBeTaken = true;
-                                    btn.Invalidate();
-                                }
-                                canBeTaken.Add(btn);
-                                canBeTakenTags.Add(mrbl);
-                                break;
+                                btn.canBeTaken = true;
+                                btn.Invalidate();
                             }
+                            canBeTaken.Add(btn);
+                            canBeTakenTags.Add(mrbl);
+                            break;
                         }
                     }
                 }
@@ -1158,7 +1237,197 @@ namespace Boku_AI
                 isPlayer1Turn = !isPlayer1Turn;
             }
 
-            return capturedPool.Count > 0;
+            return capturedPool.Length > 0;
+        }
+
+        public string chooseCapture(string mrbl1,string mrbl2, bool isWhitePOV) {
+            string bestMrbl = mrbl2;
+            int mrbl1Score = 0;
+            int mrbl2Score = 0;
+
+            char letter1;
+            int number1;
+            int indexOfLetter1;
+            List<string> currentCheckMarbles;
+            //Swap between the 2 marbles
+            for (int j = 0; j < 2; j++)
+            {
+                if (j == 0)
+                {
+                    letter1 = mrbl1.ElementAt(0);
+                    number1 = int.Parse(mrbl1.Substring(1));
+                }
+                else {
+                    letter1 = mrbl2.ElementAt(0);
+                    number1 = int.Parse(mrbl2.Substring(1));
+                }
+                indexOfLetter1 = Array.IndexOf(boardLetters, letter1);
+                //Evaluate score for this marble position for black and for white
+                for (int i = 0; i < 2; i++)
+                {
+                    if (i == 0)
+                    {
+                        currentCheckMarbles = whiteMarbles;
+                    }
+                    else
+                    {
+                        currentCheckMarbles = blackMarbles;
+                    }
+                    //Same letter
+                    int numberCopy1 = number1;
+                    int myMatchCount1 = 0;
+                    int allowedGap = 1;
+                    while (numberCopy1 < 10)
+                    {
+                        if (currentCheckMarbles.Contains(letter1.ToString() + (numberCopy1 + 1).ToString()))
+                        {
+                            myMatchCount1++;
+                        }
+                        else
+                        {
+                            if (allowedGap > 0 && freeHexes.Contains(letter1.ToString() + (numberCopy1 + 1).ToString()))
+                            {
+                                myMatchCount1++;
+                                allowedGap--;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                        numberCopy1++;
+                    }
+                    numberCopy1 = number1;
+                    while (numberCopy1 > 1)
+                    {
+                        if (currentCheckMarbles.Contains(letter1.ToString() + (numberCopy1 - 1).ToString()))
+                        {
+                            myMatchCount1++;
+                        }
+                        else
+                        {
+                            if (allowedGap > 0 && freeHexes.Contains(letter1.ToString() + (numberCopy1 - 1).ToString()))
+                            {
+                                myMatchCount1++;
+                                allowedGap--;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        numberCopy1--;
+                    }
+                    //Same number
+                    int letterIndexCopy1 = indexOfLetter1;
+                    int myMatchCount2 = 0;
+                    allowedGap = 1;
+                    while (letterIndexCopy1 < 8)
+                    {
+                        if (currentCheckMarbles.Contains(boardLetters[letterIndexCopy1 + 1].ToString() + number1.ToString()))
+                        {
+                            myMatchCount2++;
+                        }
+                        else
+                        {
+                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 + 1].ToString() + number1.ToString()))
+                            {
+                                myMatchCount2++;
+                                allowedGap--;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        letterIndexCopy1++;
+                    }
+                    letterIndexCopy1 = indexOfLetter1;
+                    while (letterIndexCopy1 > 0)
+                    {
+                        if (currentCheckMarbles.Contains(boardLetters[letterIndexCopy1 - 1].ToString() + number1.ToString()))
+                        {
+                            myMatchCount2++;
+                        }
+                        else
+                        {
+                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 - 1].ToString() + number1.ToString()))
+                            {
+                                myMatchCount2++;
+                                allowedGap--;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        letterIndexCopy1--;
+                    }
+                    //Incrementing both letter and number
+                    numberCopy1 = number1;
+                    letterIndexCopy1 = indexOfLetter1;
+                    int myMatchCount3 = 0;
+                    allowedGap = 1;
+                    while (numberCopy1 < 10 && letterIndexCopy1 < 8)
+                    {
+                        if (currentCheckMarbles.Contains(boardLetters[letterIndexCopy1 + 1].ToString() + (numberCopy1 + 1).ToString()))
+                        {
+                            myMatchCount3++;
+                        }
+                        else
+                        {
+                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 + 1].ToString() + (numberCopy1 + 1).ToString()))
+                            {
+                                myMatchCount3++;
+                                allowedGap--;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        numberCopy1++;
+                        letterIndexCopy1++;
+                    }
+                    numberCopy1 = number1;
+                    letterIndexCopy1 = indexOfLetter1;
+                    while (numberCopy1 > 1 && letterIndexCopy1 > 0)
+                    {
+                        if (currentCheckMarbles.Contains(boardLetters[letterIndexCopy1 - 1].ToString() + (numberCopy1 - 1).ToString()))
+                        {
+                            myMatchCount3++;
+                        }
+                        else
+                        {
+                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 - 1].ToString() + (numberCopy1 - 1).ToString()))
+                            {
+                                myMatchCount3++;
+                                allowedGap--;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        numberCopy1--;
+                        letterIndexCopy1--;
+                    }
+                    //Calculate Score For The Lines
+                    if (j == 0)
+                    {
+                        mrbl1Score = mrbl1Score + myMatchCount1 * myMatchCount1 + myMatchCount2 * myMatchCount2 + myMatchCount3 * myMatchCount3;
+                    }
+                    else {
+                        mrbl2Score = mrbl2Score + myMatchCount1 * myMatchCount1 + myMatchCount2 * myMatchCount2 + myMatchCount3 * myMatchCount3;
+                    }
+                }
+            }
+
+
+            if (mrbl1Score > mrbl2Score) {
+                bestMrbl = mrbl1;
+            }
+
+            return bestMrbl;
         }
 
         public void CheckImpossibleTurn()
@@ -1200,7 +1469,8 @@ namespace Boku_AI
             {
                 hash ^= zk.isWhiteTurnKey;
             }
-            else {
+            else
+            {
                 hash ^= zk.isBlackTurnKey;
             }
 
