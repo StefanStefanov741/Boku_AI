@@ -14,7 +14,6 @@ namespace Boku_AI
         bool isPlayer1;
         DateTime timeIsUp;
         TranspositionTable tt;
-        int overthinkingCounter;
 
         //Weights
         private static int winValue = 77777777;
@@ -28,12 +27,10 @@ namespace Boku_AI
             this.isPlayer1 = isPl1;
             this.timeIsUp = DateTime.Now.AddDays(10);
             this.tt = new TranspositionTable();
-            this.overthinkingCounter = 0;
         }
 
         public string MakeMove(GameState state)
         {
-            overthinkingCounter = 0;
             MoveStruct bestMove = new MoveStruct(minValue, state.freeHexes.ElementAt(0));
             if (bestMove.move == state.takenLastRound)
             {
@@ -81,7 +78,7 @@ namespace Boku_AI
                     if (currentDepthMove.score >= beta && currentDepthMove.score<winValue)
                     {
                         alpha = currentDepthMove.score;
-                        beta = maxValue;
+                        beta = winValue;
                         currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta, maxDepth, possibleMoves);
                     }
                     else if (currentDepthMove.score > minValue && currentDepthMove.score <= alpha)
@@ -255,7 +252,7 @@ namespace Boku_AI
                             return bestMove;
                         }
                         //Perform a null move
-                        MoveStruct nullMoveResult = NegaMaxScore(!isPlayer1, new GameState(currentState), 1, -beta, -alpha, 1);
+                        MoveStruct nullMoveResult = NegaMaxScore(!isPlayer1, new GameState(entryState), 1, -beta, -alpha, 1);
 
                         //Go deeper if the null move did not cause a cut off
                         if (-nullMoveResult.score < beta)

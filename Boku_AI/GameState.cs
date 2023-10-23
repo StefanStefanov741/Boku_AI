@@ -1449,22 +1449,22 @@ namespace Boku_AI
         {
             ulong hash = 0;
 
-            // XOR the Zobrist keys for black pieces
+            //XOR the Zobrist keys for black pieces
             foreach (string position in blackMarbles)
             {
                 hash ^= zk.BlackKeys[position];
             }
 
-            // XOR the Zobrist keys for white pieces
+            //XOR the Zobrist keys for white pieces
             foreach (string position in whiteMarbles)
             {
                 hash ^= zk.WhiteKeys[position];
             }
 
-            // XOR the Zobrist key for the forbidden position
+            //XOR the Zobrist key for the forbidden position
             hash ^= zk.TakenLastRoundKeys[takenLastRound];
 
-            // XOR with the player turn
+            //XOR with the player turn
             if (isPlayer1Turn)
             {
                 hash ^= zk.isWhiteTurnKey;
