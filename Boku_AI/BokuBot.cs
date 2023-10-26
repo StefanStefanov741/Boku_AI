@@ -104,7 +104,7 @@ namespace Boku_AI
             return bestMove.move;
         }
 
-        private MoveStruct NegaMaxScore(bool isWhitePlayer, GameState entryState, int depth, int alpha, int beta, int initialMaxDepth,List<MoveStruct>movesList=null)
+        private MoveStruct NegaMaxScore(bool isWhitePlayer, GameState entryState, int depth, int alpha, int beta, int initialMaxDepth,List<MoveStruct>movesList=null, bool allowedNullMove = true)
         {
             //Calculate the Zobrist hash for the entry state
             ulong zobristHash = entryState.GetZobristHash();
@@ -252,10 +252,13 @@ namespace Boku_AI
                             return bestMove;
                         }
                         //Perform a null move
-                        MoveStruct nullMoveResult = NegaMaxScore(!isPlayer1, new GameState(entryState), 1, -beta, -alpha, 1);
+                        MoveStruct nullMoveResult = null;
+                        if (allowedNullMove) {
+                            nullMoveResult = NegaMaxScore(!isPlayer1, new GameState(entryState), 1, -beta, -alpha, 1,null,false);
+                        }
 
                         //Go deeper if the null move did not cause a cut off
-                        if (-nullMoveResult.score < beta)
+                        if (nullMoveResult!=null && -nullMoveResult.score < beta)
                         {
                             MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha, initialMaxDepth);
                             if (nextValue.ignoreMove)
