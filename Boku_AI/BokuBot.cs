@@ -72,7 +72,7 @@ namespace Boku_AI
                     }
 
                     //Go deeper
-                    MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta, maxDepth, possibleMoves);
+                    MoveStruct currentDepthMove = NegaMaxScore(isPlayer1, new GameState(state), maxDepth, alpha, beta, maxDepth, possibleMoves,false);
 
                     //Windowing
                     if (currentDepthMove.score >= beta && currentDepthMove.score<winValue)
@@ -258,7 +258,7 @@ namespace Boku_AI
                         }
 
                         //Go deeper if the null move did not cause a cut off
-                        if (nullMoveResult!=null && -nullMoveResult.score < beta)
+                        if (nullMoveResult==null || (nullMoveResult!=null && -nullMoveResult.score < beta))
                         {
                             MoveStruct nextValue = NegaMaxScore(!isWhitePlayer, new GameState(currentState), depth - 1, -beta, -alpha, initialMaxDepth);
                             if (nextValue.ignoreMove)

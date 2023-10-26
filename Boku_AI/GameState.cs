@@ -1285,7 +1285,7 @@ namespace Boku_AI
                         }
                         else
                         {
-                            if (allowedGap > 0 && freeHexes.Contains(letter1.ToString() + (numberCopy1 + 1).ToString()))
+                            if (allowedGap > 0 && freeHexes.Contains(letter1.ToString() + (numberCopy1 + 1).ToString()) && currentCheckMarbles.Contains(letter1.ToString() + (numberCopy1 + 2).ToString()))
                             {
                                 myMatchCount1++;
                                 allowedGap--;
@@ -1305,7 +1305,7 @@ namespace Boku_AI
                         }
                         else
                         {
-                            if (allowedGap > 0 && freeHexes.Contains(letter1.ToString() + (numberCopy1 - 1).ToString()))
+                            if (allowedGap > 0 && freeHexes.Contains(letter1.ToString() + (numberCopy1 - 1).ToString()) && (numberCopy1 - 2)>=1 && currentCheckMarbles.Contains(letter1.ToString() + (numberCopy1 - 2).ToString()))
                             {
                                 myMatchCount1++;
                                 allowedGap--;
@@ -1329,7 +1329,7 @@ namespace Boku_AI
                         }
                         else
                         {
-                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 + 1].ToString() + number1.ToString()))
+                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 + 1].ToString() + number1.ToString()) && (letterIndexCopy1 + 2)<=9 && currentCheckMarbles.Contains(boardLetters[letterIndexCopy1 + 2].ToString() + number1.ToString()))
                             {
                                 myMatchCount2++;
                                 allowedGap--;
@@ -1350,7 +1350,7 @@ namespace Boku_AI
                         }
                         else
                         {
-                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 - 1].ToString() + number1.ToString()))
+                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 - 1].ToString() + number1.ToString()) && (letterIndexCopy1-2)>=0 && currentCheckMarbles.Contains(boardLetters[letterIndexCopy1 - 2].ToString() + number1.ToString()))
                             {
                                 myMatchCount2++;
                                 allowedGap--;
@@ -1375,7 +1375,7 @@ namespace Boku_AI
                         }
                         else
                         {
-                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 + 1].ToString() + (numberCopy1 + 1).ToString()))
+                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 + 1].ToString() + (numberCopy1 + 1).ToString()) && (letterIndexCopy1+2)<=9 && currentCheckMarbles.Contains(boardLetters[letterIndexCopy1 + 2].ToString() + (numberCopy1 + 2).ToString()))
                             {
                                 myMatchCount3++;
                                 allowedGap--;
@@ -1398,7 +1398,7 @@ namespace Boku_AI
                         }
                         else
                         {
-                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 - 1].ToString() + (numberCopy1 - 1).ToString()))
+                            if (allowedGap > 0 && freeHexes.Contains(boardLetters[letterIndexCopy1 - 1].ToString() + (numberCopy1 - 1).ToString()) && (letterIndexCopy1-2)>=0 && (numberCopy1-2)>=1 && currentCheckMarbles.Contains(boardLetters[letterIndexCopy1 - 2].ToString() + (numberCopy1 - 2).ToString()))
                             {
                                 myMatchCount3++;
                                 allowedGap--;
@@ -1421,7 +1421,6 @@ namespace Boku_AI
                     }
                 }
             }
-
 
             if (mrbl1Score > mrbl2Score) {
                 bestMrbl = mrbl1;
